@@ -1,0 +1,13 @@
+{% extends 'base.html' %} {% block body %}
+<section>
+  <h1>Welcome</h1>
+  <div>
+    Server time:
+    <time datetime="{{ time }}">{{ time }}</time>
+  </div>
+  <br />
+  <a href="{% url 'admin:index' %}" 
+    >Continue to Admin Dashboard &rarr;</a
+  >
+</section>
+{% endblock %}

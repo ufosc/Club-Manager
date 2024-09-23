@@ -3,12 +3,20 @@ Api Views for core app functionalities.
 """
 
 from django.http import JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.views import exception_handler
 
 from app.settings import IS_TESTING_MODE
 from utils.logging import print_error
+
+
+def index(request):
+    """Base view for site."""
+    server_time = timezone.now().strftime("%d/%m/%Y, %H:%M:%S")
+    return render(request, "core/landing.html", context={"time": server_time})
 
 
 def health_check(request):
