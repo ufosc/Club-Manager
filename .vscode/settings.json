@@ -37,6 +37,5 @@
       "source.unusedImports": "explicit",
       "source.fixAll": "explicit"
     }
-  },
-  "python.REPL.enableREPLSmartSend": false
+  }
 }
