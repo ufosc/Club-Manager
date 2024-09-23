@@ -9,7 +9,7 @@ from users import views
 
 app_name = "users"
 
-apipatterns = [
+urlpatterns = [
     path("token/", views.CreateTokenView.as_view(), name="token"),
     path("me/", views.ManageUserView.as_view(), name="me"),
     path(

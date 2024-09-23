@@ -9,7 +9,6 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
-from django.template.loader import render_to_string
 
 
 def profile_image_file_path(instance: "User", filename):
@@ -85,7 +84,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name or ''} {self.last_name or ''}".strip()
+        # if self.first_name and not self.last_name:
+        #     return self.first_name
+        # elif self.last_name and not self.first_name:
+        #     return self.last_name
+        # elif self.first_name and self.last_name:
+        #     return f"{self.first_name} {self.last_name}"
+        # else:
+        #     return ""
 
     def __str__(self):
         return self.name if self.name.strip() != "" else self.email

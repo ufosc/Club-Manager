@@ -1,0 +1,42 @@
+{
+  "editor.tabSize": 4,
+  "python.analysis.typeCheckingMode": "off",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.inlayHints.callArgumentNames": "off",
+  "flake8.args": ["--max-line-length=120"],
+  "python.autoComplete.extraPaths": ["app"],
+  "python.analysis.extraPaths": ["app"],
+  "python.analysis.packageIndexDepths": [
+    {
+      "name": "rest_framework",
+      "depth": 3,
+      "includeAllSymbols": true
+    },
+    {
+      "name": "django",
+      "depth": 4,
+      "includeAllSymbols": true
+    },
+    {
+      "name": "sendgrid",
+      "depth": 3,
+      "includeAllSymbols": true
+    },
+    {
+      "name": "django_celery_beat",
+      "depth": 3,
+      "includeAllSymbols": true
+    }
+  ],
+  "python.defaultInterpreterPath": "/Users/isaachunter/opt/anaconda3/envs/webenv/bin/python3",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.unusedImports": "explicit",
+      "source.fixAll": "explicit"
+    }
+  },
+  "python.REPL.enableREPLSmartSend": false
+}

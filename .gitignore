@@ -6,7 +6,7 @@ _*
 !__init__.py
 
 # VSCode
-.vscode/
+# .vscode/
 docker-compose.debug.yml
 
 # Custom
