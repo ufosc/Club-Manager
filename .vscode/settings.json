@@ -17,18 +17,7 @@
       "depth": 4,
       "includeAllSymbols": true
     },
-    {
-      "name": "sendgrid",
-      "depth": 3,
-      "includeAllSymbols": true
-    },
-    {
-      "name": "django_celery_beat",
-      "depth": 3,
-      "includeAllSymbols": true
-    }
   ],
-  "python.defaultInterpreterPath": "/Users/isaachunter/opt/anaconda3/envs/webenv/bin/python3",
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter",
 
