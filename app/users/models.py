@@ -3,6 +3,7 @@ User Models.
 """
 
 import os
+from typing import Optional
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -73,10 +74,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     date_joined = models.DateTimeField(auto_now_add=True, editable=False, blank=True)
     date_modified = models.DateTimeField(auto_now=True, editable=False, blank=True)
-    
+
     USERNAME_FIELD = "username"
 
     objects = UserManager()
+
+    # Relationships
+    profile: Optional["Profile"]
+    club_memberships: models.QuerySet
 
     @property
     def name(self):
@@ -102,6 +107,8 @@ class Profile(BaseModel):
     city = models.CharField(max_length=255, blank=True, null=True)
     state = models.CharField(max_length=2, blank=True, null=True)
     zip_code = models.CharField(max_length=10, blank=True, null=True)
+
+    birthday = models.DateField(null=True, blank=True)
 
     image = models.ImageField(
         upload_to=profile_image_file_path,
