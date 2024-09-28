@@ -34,4 +34,5 @@ urlpatterns = [
         name="api-docs",
     ),
     path("api/user/", include("users.urls")),
+    path("clubs/", include("clubs.urls")),
 ]
