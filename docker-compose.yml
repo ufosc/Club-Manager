@@ -1,9 +1,10 @@
 services:
-  api:
+  app:
     build:
       context: .
       args:
         - DEV=true
+    container_name: club-app
     ports:
       - '8000:8000'
     volumes:

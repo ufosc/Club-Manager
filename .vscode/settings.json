@@ -3,7 +3,7 @@
   "python.analysis.typeCheckingMode": "off",
   "python.analysis.autoImportCompletions": true,
   "python.analysis.inlayHints.callArgumentNames": "off",
-  "flake8.args": ["--max-line-length=120"],
+  "flake8.args": ["--config=setup.cfg"],
   "python.autoComplete.extraPaths": ["app"],
   "python.analysis.extraPaths": ["app"],
   "python.analysis.packageIndexDepths": [
@@ -16,7 +16,7 @@
       "name": "django",
       "depth": 4,
       "includeAllSymbols": true
-    },
+    }
   ],
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter",
@@ -26,5 +26,7 @@
       "source.unusedImports": "explicit",
       "source.fixAll": "explicit"
     }
-  }
+  },
+
+  // "flake8.ignorePatterns": ["migrations/*"]
 }
