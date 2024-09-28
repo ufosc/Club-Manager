@@ -2,7 +2,7 @@
 User Models.
 """
 
-import os
+from typing import Optional
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -10,13 +10,8 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 
-
-def profile_image_file_path(instance: "User", filename):
-    """Generate file path for profile image."""
-    ext = os.path.splitext(filename)[1]
-    filename = f'{instance.name.replace(" ", "-")}-{instance.pk}{ext}'
-
-    return os.path.join("uploads", "user", filename)
+from core.abstracts.models import BaseModel, UniqueModel
+from utils.models import UploadFilepathFactory
 
 
 class UserManager(BaseUserManager):
@@ -27,10 +22,14 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError("User must have an email address")
 
-        user = self.model(email=self.normalize_email(email), **extra_fields)
+        email = self.normalize_email(email)
+
+        user = self.model(username=email, **extra_fields)
         user.set_password(password)
         user.is_active = True
         user.save(using=self._db)
+
+        Profile.objects.create(email=email, user=user)
 
         return user
 
@@ -57,42 +56,81 @@ class UserManager(BaseUserManager):
         return self.make_random_password()
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
     """User model for system."""
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-    email = models.EmailField(max_length=128, unique=True)
 
-    first_name = models.CharField(max_length=255, blank=True, null=True)
-    last_name = models.CharField(max_length=255, blank=True, null=True)
-
-    image = models.ImageField(
-        upload_to=profile_image_file_path,
-        default="users/profile.jpeg",
-        blank=True,
-        null=True,
-    )
+    username = models.CharField(max_length=64, unique=True)
 
     date_joined = models.DateTimeField(auto_now_add=True, editable=False, blank=True)
     date_modified = models.DateTimeField(auto_now=True, editable=False, blank=True)
 
+    USERNAME_FIELD = "username"
+
     objects = UserManager()
 
-    USERNAME_FIELD = "email"
+    # Relationships
+    profile: Optional["Profile"]
+    club_memberships: models.QuerySet
+
+    def __str__(self):
+        return self.username
+
+
+class Profile(BaseModel):
+    """User information."""
+
+    get_user_profile_filepath = UploadFilepathFactory("users/profiles/")
+
+    user = models.OneToOneField(
+        User, primary_key=True, related_name="profile", on_delete=models.CASCADE
+    )
+
+    email = models.EmailField(max_length=128, unique=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+
+    first_name = models.CharField(max_length=255, blank=True, null=True)
+    last_name = models.CharField(max_length=255, blank=True, null=True)
+
+    address_1 = models.CharField(max_length=255, null=True, blank=True)
+    address_2 = models.CharField(max_length=255, null=True, blank=True)
+
+    city = models.CharField(max_length=255, blank=True, null=True)
+    state = models.CharField(max_length=2, blank=True, null=True)
+    zip_code = models.CharField(max_length=10, blank=True, null=True)
+
+    birthday = models.DateField(null=True, blank=True)
+
+    image = models.ImageField(
+        upload_to=get_user_profile_filepath,
+        default="user/profile.jpeg",
+        blank=True,
+    )
 
     @property
     def name(self):
         return f"{self.first_name or ''} {self.last_name or ''}".strip()
-        # if self.first_name and not self.last_name:
-        #     return self.first_name
-        # elif self.last_name and not self.first_name:
-        #     return self.last_name
-        # elif self.first_name and self.last_name:
-        #     return f"{self.first_name} {self.last_name}"
-        # else:
-        #     return ""
 
-    def __str__(self):
-        return self.name if self.name.strip() != "" else self.email
+    class Meta:
+        _is_unique_nonempty_phone = models.Q(
+            models.Q(phone__isnull=False) & ~models.Q(phone__exact="")
+        )
+
+        # Ensure non-empty phone fields are unique
+        constraints = [
+            models.UniqueConstraint(
+                fields=("phone",),
+                condition=_is_unique_nonempty_phone,
+                name="Unique non-null phone number for each profile",
+            )
+        ]
+
+        # Allow non-empty phone fields to be easily searchable
+        indexes = [
+            models.Index(
+                fields=("phone",), name="phone_idx", condition=_is_unique_nonempty_phone
+            )
+        ]

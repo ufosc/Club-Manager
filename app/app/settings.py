@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'drf_spectacular',  # used for testing
     "core",
     "users",
+    "clubs",
 ]
 
 MIDDLEWARE = [
