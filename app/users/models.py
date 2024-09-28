@@ -10,6 +10,8 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 
+from core.abstracts.models import BaseModel
+
 
 def profile_image_file_path(instance: "User", filename):
     """Generate file path for profile image."""
@@ -63,36 +65,67 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-    email = models.EmailField(max_length=128, unique=True)
+
+    username = models.CharField(max_length=64, unique=True)
 
     first_name = models.CharField(max_length=255, blank=True, null=True)
     last_name = models.CharField(max_length=255, blank=True, null=True)
 
-    image = models.ImageField(
-        upload_to=profile_image_file_path,
-        default="users/profile.jpeg",
-        blank=True,
-        null=True,
-    )
-
     date_joined = models.DateTimeField(auto_now_add=True, editable=False, blank=True)
     date_modified = models.DateTimeField(auto_now=True, editable=False, blank=True)
+    
+    USERNAME_FIELD = "username"
 
     objects = UserManager()
-
-    USERNAME_FIELD = "email"
 
     @property
     def name(self):
         return f"{self.first_name or ''} {self.last_name or ''}".strip()
-        # if self.first_name and not self.last_name:
-        #     return self.first_name
-        # elif self.last_name and not self.first_name:
-        #     return self.last_name
-        # elif self.first_name and self.last_name:
-        #     return f"{self.first_name} {self.last_name}"
-        # else:
-        #     return ""
 
     def __str__(self):
         return self.name if self.name.strip() != "" else self.email
+
+
+class Profile(BaseModel):
+    """User information."""
+
+    user = models.OneToOneField(
+        User, primary_key=True, related_name="profile", on_delete=models.CASCADE
+    )
+
+    email = models.EmailField(max_length=128, unique=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+
+    address_1 = models.CharField(max_length=255, null=True, blank=True)
+    address_2 = models.CharField(max_length=255, null=True, blank=True)
+
+    city = models.CharField(max_length=255, blank=True, null=True)
+    state = models.CharField(max_length=2, blank=True, null=True)
+    zip_code = models.CharField(max_length=10, blank=True, null=True)
+
+    image = models.ImageField(
+        upload_to=profile_image_file_path,
+        default="user/profile.jpeg",
+        blank=True,
+    )
+
+    class Meta:
+        _is_unique_nonempty_phone = models.Q(
+            models.Q(phone__isnull=False) & ~models.Q(phone__exact="")
+        )
+
+        # Ensure non-empty phone fields are unique
+        constraints = [
+            models.UniqueConstraint(
+                fields=("phone",),
+                condition=_is_unique_nonempty_phone,
+                name="Unique non-null phone number for each profile",
+            )
+        ]
+
+        # Allow non-empty phone fields to be easily searchable
+        indexes = [
+            models.Index(
+                fields=("phone",), name="phone_idx", condition=_is_unique_nonempty_phone
+            )
+        ]
