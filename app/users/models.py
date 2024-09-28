@@ -2,7 +2,6 @@
 User Models.
 """
 
-import os
 from typing import Optional
 from django.db import models
 from django.contrib.auth.models import (
@@ -11,15 +10,8 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 
-from core.abstracts.models import BaseModel
-
-
-def profile_image_file_path(instance: "User", filename):
-    """Generate file path for profile image."""
-    ext = os.path.splitext(filename)[1]
-    filename = f'{instance.name.replace(" ", "-")}-{instance.pk}{ext}'
-
-    return os.path.join("uploads", "user", filename)
+from core.abstracts.models import BaseModel, UniqueModel
+from utils.models import UploadFilepathFactory
 
 
 class UserManager(BaseUserManager):
@@ -30,10 +22,14 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError("User must have an email address")
 
-        user = self.model(email=self.normalize_email(email), **extra_fields)
+        email = self.normalize_email(email)
+
+        user = self.model(username=email, **extra_fields)
         user.set_password(password)
         user.is_active = True
         user.save(using=self._db)
+
+        Profile.objects.create(email=email, user=user)
 
         return user
 
@@ -60,7 +56,7 @@ class UserManager(BaseUserManager):
         return self.make_random_password()
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
     """User model for system."""
 
     is_active = models.BooleanField(default=True)
@@ -68,9 +64,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
 
     username = models.CharField(max_length=64, unique=True)
-
-    first_name = models.CharField(max_length=255, blank=True, null=True)
-    last_name = models.CharField(max_length=255, blank=True, null=True)
 
     date_joined = models.DateTimeField(auto_now_add=True, editable=False, blank=True)
     date_modified = models.DateTimeField(auto_now=True, editable=False, blank=True)
@@ -83,16 +76,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     profile: Optional["Profile"]
     club_memberships: models.QuerySet
 
-    @property
-    def name(self):
-        return f"{self.first_name or ''} {self.last_name or ''}".strip()
-
     def __str__(self):
-        return self.name if self.name.strip() != "" else self.email
+        return self.username
 
 
 class Profile(BaseModel):
     """User information."""
+
+    get_user_profile_filepath = UploadFilepathFactory("users/profiles/")
 
     user = models.OneToOneField(
         User, primary_key=True, related_name="profile", on_delete=models.CASCADE
@@ -100,6 +91,9 @@ class Profile(BaseModel):
 
     email = models.EmailField(max_length=128, unique=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
+
+    first_name = models.CharField(max_length=255, blank=True, null=True)
+    last_name = models.CharField(max_length=255, blank=True, null=True)
 
     address_1 = models.CharField(max_length=255, null=True, blank=True)
     address_2 = models.CharField(max_length=255, null=True, blank=True)
@@ -111,10 +105,14 @@ class Profile(BaseModel):
     birthday = models.DateField(null=True, blank=True)
 
     image = models.ImageField(
-        upload_to=profile_image_file_path,
+        upload_to=get_user_profile_filepath,
         default="user/profile.jpeg",
         blank=True,
     )
+
+    @property
+    def name(self):
+        return f"{self.first_name or ''} {self.last_name or ''}".strip()
 
     class Meta:
         _is_unique_nonempty_phone = models.Q(
