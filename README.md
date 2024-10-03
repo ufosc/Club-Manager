@@ -5,6 +5,7 @@
 Install Docker & docker-compose, then:
 
 ```sh
+cp sample.env .env
 docker-compose up --build
 ```
 
@@ -17,7 +18,34 @@ docker-compose up
 To run unit tests:
 
 ```sh
-docker-compose run --rm api sh -c "python manage.py test"
+docker-compose run --rm app sh -c "python manage.py test"
+```
+
+### Admin Dashboard
+
+You can log into the admin dashboard by going to the route `/admin` and using the following credentials:
+
+- Username: `admin@example.com`
+- Password: `changeme`
+
+These defaults are set via environment variables:
+
+```txt
+DJANGO_SUPERUSER_EMAIL="admin@example.com"
+DJANGO_SUPERUSER_PASS="changeme"
+```
+
+If you want to change these values, copy the sample.env file to a new `.env` file and change the values. If you already created an admin with the other credentials, then another one won't be created automatically. To get another one to be created automatically, remove the database and restart the app with this command:
+
+```sh
+docker-compose down --remove-orphans -v
+docker-compose up
+```
+
+If you want to create a new admin without removing the old database, run this command:
+
+```sh
+docker-compose run --rm app sh -c "python manage.py createsuperuser --no-input"
 ```
 
 ## Discussion
