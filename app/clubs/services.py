@@ -7,25 +7,31 @@ class ClubService(ModelService):
     """Manage club objects, business logic."""
 
     model = Club
+    club: Club
+
+    def __init__(self, club: Club) -> None:
+        self.club = club
+
+        super().__init__()
 
     @classmethod
     def create(cls, name: str, logo=None, **kwargs):
         """Create Club model."""
         return super().create(name=name, logo=logo, **kwargs)
 
-    def get_registration_link(self, club: Club):
+    def get_registration_link(self):
         """Get link for a new user to create account and register."""
         pass
 
-    def register_member(self, user: User, club: Club):
+    def register_member(self, user: User):
         """Create membership for pre-existing user."""
         pass
 
-    def increase_member_tokens(self, user: User, club: Club, amount: int = 1):
+    def increase_member_tokens(self, user: User, amount: int = 1):
         """Give the user more tokens."""
         pass
 
-    def decrease_member_tokens(self, user: User, club: Club, amount: int = 1):
+    def decrease_member_tokens(self, user: User, amount: int = 1):
         """Remove tokens from the user."""
         pass
 
