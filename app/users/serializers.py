@@ -10,14 +10,19 @@ from rest_framework import serializers
 class UserSerializer(serializers.ModelSerializer):
     """Serialzier for the user object."""
 
+    email = serializers.EmailField()
+    username = serializers.CharField(required=False)
+    first_name = serializers.CharField(required=False)
+    last_name = serializers.CharField(required=False)
+
     class Meta:  # defines what is passed to the serializer
         model = get_user_model()
         fields = [
             "id",
+            "username",
             "email",
             "first_name",
             "last_name",
-            "image",
             "password",
         ]
         # defines characteristics of specific fields

@@ -21,6 +21,26 @@ To run unit tests:
 docker-compose run --rm app sh -c "python manage.py test"
 ```
 
+### Other Commands
+
+Create a new database migration file:
+
+```sh
+docker-compose run --rm app sh -c "python manage.py makemigrations"
+```
+
+Optionally, dry-run migration creation to see if models formatted correctly:
+
+```sh
+docker-compose run --rm app sh -c "python manage.py makemigrations --dry-run"
+```
+
+Apply the migration to the database:
+
+```sh
+docker-compose run --rm app sh -c "python manage.py migrate"
+```
+
 ### Admin Dashboard
 
 You can log into the admin dashboard by going to the route `/admin` and using the following credentials:
