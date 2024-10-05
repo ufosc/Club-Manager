@@ -29,11 +29,11 @@ urlpatterns = [
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(
         "api/docs/",
-        # what schema to use when creating docs
         SpectacularSwaggerView.as_view(url_name="api-schema"),
         name="api-docs",
     ),
     path("users/", include("users.urls")),
     path("clubs/", include("clubs.urls")),
     path("api/user/", include("users.api_urls")),
+    path("api/club/", include("clubs.api_urls")),
 ]
