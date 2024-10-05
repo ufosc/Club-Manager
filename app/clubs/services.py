@@ -46,3 +46,6 @@ class ClubService(ModelService):
     def create_recurring_event(self):
         """Create new recurring club event."""
         pass
+
+
+
