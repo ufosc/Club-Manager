@@ -26,14 +26,14 @@ from django.urls import path, include
 urlpatterns = [
     path("", include("core.urls")),
     path("admin/", admin.site.urls),
-    path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
+    path("api/v1/schema/club-manager", SpectacularAPIView.as_view(), name="api-schema"),
     path(
-        "api/docs/",
+        "api/v1/docs/club-manager",
         SpectacularSwaggerView.as_view(url_name="api-schema"),
         name="api-docs",
     ),
     path("users/", include("users.urls")),
     path("clubs/", include("clubs.urls")),
-    path("api/user/", include("users.api_urls")),
-    path("api/club/", include("clubs.api_urls")),
+    path("api/v1/user/", include("users.api_urls")),
+    path("api/v1/club/", include("clubs.api_urls")),
 ]
