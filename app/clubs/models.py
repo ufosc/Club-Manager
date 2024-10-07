@@ -59,7 +59,7 @@ class ClubMembership(BaseModel):
     owner = models.BooleanField(default=False, blank=True)
 
     # TODO: Should this be split to own model? Keep history of point changes?
-    points = models.IntegerField(default=0, blank=True)
+    coins = models.IntegerField(default=0, blank=True)
 
     class Meta:
         # TODO: Edgecase - owner's user is deleted, deleting membership
