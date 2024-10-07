@@ -27,12 +27,12 @@ class ClubService(ModelService):
         """Create membership for pre-existing user."""
         pass
 
-    def increase_member_tokens(self, user: User, amount: int = 1):
-        """Give the user more tokens."""
+    def increase_member_coins(self, user: User, amount: int = 1):
+        """Give the user more coins."""
         pass
 
-    def decrease_member_tokens(self, user: User, amount: int = 1):
-        """Remove tokens from the user."""
+    def decrease_member_coins(self, user: User, amount: int = 1):
+        """Remove coins from the user."""
         pass
 
     def record_member_attendance(self, user: User, event: Event):
