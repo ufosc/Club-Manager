@@ -22,19 +22,18 @@ from drf_spectacular.views import (
 
 from django.contrib import admin
 from django.urls import path, include
-from users.urls import apipatterns as user_urls
 
 urlpatterns = [
     path("", include("core.urls")),
     path("admin/", admin.site.urls),
-    path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
+    path("api/v1/schema/club-manager", SpectacularAPIView.as_view(), name="api-schema"),
     path(
-        "api/docs/",
-        # what schema to use when creating docs
+        "api/v1/docs/club-manager",
         SpectacularSwaggerView.as_view(url_name="api-schema"),
         name="api-docs",
     ),
     path("users/", include("users.urls")),
     path("clubs/", include("clubs.urls")),
-    path("api/user/", include(user_urls)),
+    path("api/v1/user/", include("users.api_urls")),
+    path("api/v1/club/", include("clubs.api_urls")),
 ]

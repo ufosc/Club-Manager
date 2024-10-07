@@ -4,21 +4,23 @@ services:
       context: .
       args:
         - DEV=true
-    container_name: club-app
+    container_name: club-app-network
     ports:
       - '8000:8000'
     volumes:
       - ./app:/app
+      - club-static:/vol/static
     command: >
       sh -c "python manage.py wait_for_db &&
              python manage.py migrate &&
              python manage.py init_superuser &&
-             python manage.py runserver 0.0.0.0:8000"
+             entrypoint.sh"
     # env_file:
     #   - .env
     environment:
+      - PORT=9000
       - DJANGO_ENV=dev
-      - DB_HOST=osc-dev-db
+      - DB_HOST=osc-network-db
       - DB_NAME=devdatabase
       - DB_USER=devuser
       - DB_PASS=devpass
@@ -30,23 +32,28 @@ services:
       - DJANGO_SUPERUSER_PASS=${DJANGO_SUPERUSER_PASS:-changeme}
     depends_on:
       - postgres
+    networks:
+      - cluster
 
   postgres:
     image: postgres:13-alpine
-    container_name: osc-dev-db
+    container_name: osc-network-db
     volumes:
-      - postgres-osc-dev:/var/lib/postgresql/data
+      - postgres-osc-network:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=devdatabase
       - POSTGRES_USER=devuser
       - POSTGRES_PASSWORD=devpass
-
-  coverage:
-    image: nginx
-    ports:
-      - '8001:80'
-    volumes:
-      - ./app/htmlcov:/usr/share/nginx/html
+    networks:
+      - cluster
 
 volumes:
-  postgres-osc-dev:
+  postgres-osc-network:
+  club-static:
+    name: club-static
+    external: true
+
+networks:
+  cluster:
+    name: jukebox_cluster
+    external: true

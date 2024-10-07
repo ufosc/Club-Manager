@@ -10,9 +10,9 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 
-CREATE_USER_URL = reverse("users:create")  # user as app, create as endpoint
-TOKEN_URL = reverse("users:token")
-ME_URL = reverse("users:me")
+CREATE_USER_URL = reverse("api-users:create")  # user as app, create as endpoint
+TOKEN_URL = reverse("api-users:token")
+ME_URL = reverse("api-users:me")
 
 
 def create_user(**params):
@@ -37,7 +37,7 @@ class PublicUserApiTests(TestCase):
 
         # status 201 indicates successesful user creation
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        user = get_user_model().objects.get(email=payload["email"])
+        user = get_user_model().objects.get(username=payload["email"])
         # securely check password with internal check method
         self.assertTrue(user.check_password(payload["password"]))
         # makes sure password not returned in api
@@ -66,7 +66,7 @@ class PublicUserApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         user_exists = (
-            get_user_model().objects.filter(email=payload["email"]).exists()
+            get_user_model().objects.filter(username=payload["email"]).exists()
         )  # make sure user isn't created in db
         self.assertFalse(user_exists)
 

@@ -6,19 +6,43 @@ from django.contrib.auth import get_user_model, authenticate
 from django.utils.translation import gettext as _  # convention import name
 from rest_framework import serializers
 
+from clubs.models import Club
+
+
+class UserClubNestedSerializer(serializers.ModelSerializer):
+    """Represents nested club info for users."""
+
+    id = serializers.CharField(source="club.id", read_only=True)
+    name = serializers.CharField(source="club.name", read_only=True)
+    role = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Club
+        fields = ["id", "name", "role"]
+
 
 class UserSerializer(serializers.ModelSerializer):
     """Serialzier for the user object."""
+
+    email = serializers.EmailField()
+    username = serializers.CharField(required=False)
+    first_name = serializers.CharField(required=False)
+    last_name = serializers.CharField(required=False)
+    clubs = UserClubNestedSerializer(
+        source="club_memberships",
+        many=True,
+    )
 
     class Meta:  # defines what is passed to the serializer
         model = get_user_model()
         fields = [
             "id",
+            "username",
             "email",
             "first_name",
             "last_name",
-            "image",
             "password",
+            "clubs",
         ]
         # defines characteristics of specific fields
         extra_kwargs = {"password": {"write_only": True, "min_length": 5}}

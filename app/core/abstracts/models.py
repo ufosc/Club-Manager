@@ -7,10 +7,24 @@ import uuid
 
 
 class BaseModel(models.Model):
-    """Default fields for all models"""
+    """
+    Default fields for all models.
+
+    Initializes created_at and updated_at fields,
+    default __str__ method that returns name or display_name
+    if the field exists on the model.
+    """
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
+
+    def __str__(self) -> str:
+        if hasattr(self, "name"):
+            return self.name
+        elif hasattr(self, "display_name"):
+            return self.display_name
+
+        return super().__str__()
 
     class Meta:
         abstract = True

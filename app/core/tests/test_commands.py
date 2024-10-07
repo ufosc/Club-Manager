@@ -4,16 +4,16 @@ Test custom Django management commands.
 
 from unittest.mock import patch
 
-from psycopg2 import OperationalError as Psycopg2Error
+from psycopg2 import OperationalError as Psycopg2Error # type: ignore
 
 from django.core.management import call_command
 from django.db.utils import OperationalError
-from django.test import SimpleTestCase
+from django.test import TestCase
 
 
 # mocking check command to simulate response
 @patch("core.management.commands.wait_for_db.Command.check")
-class CommandTests(SimpleTestCase):
+class CommandTests(TestCase):
     """Test commands."""
 
     def test_wait_for_db_ready(self, patched_check):

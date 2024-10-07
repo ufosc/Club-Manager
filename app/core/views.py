@@ -29,9 +29,6 @@ def api_exception_handler(exc, context):
     """Custom exception handler for api."""
     response = exception_handler(exc, context)
 
-    if IS_TESTING_MODE:
-        return response
-
     if response is not None:
         response.data["status_code"] = response.status_code
     else:

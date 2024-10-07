@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from clubs.models import Club, ClubMembership
+
+from clubs.models import Club, ClubMembership, Event, RecurringEvent
 
 
 class ClubMembershipInlineAdmin(admin.StackedInline):
@@ -20,4 +21,27 @@ class ClubAdmin(admin.ModelAdmin):
         return obj.memberships.count()
 
 
+class RecurringEventAdmin(admin.ModelAdmin):
+
+    list_display = ["__str__", "day", "location", "start_date", "end_date"]
+    actions = ["sync_events"]
+
+    @admin.action(description="Sync Events")
+    def sync_events(self, request, queryset):
+
+        for recurring in queryset.all():
+            recurring.sync_events()
+
+        return
+
+
+class EventAdmin(admin.ModelAdmin):
+    """Admin config for club events."""
+
+    list_display = ["__str__", "location", "event_start", "event_end"]
+    ordering = ["event_start"]
+
+
 admin.site.register(Club, ClubAdmin)
+admin.site.register(Event, EventAdmin)
+admin.site.register(RecurringEvent, RecurringEventAdmin)

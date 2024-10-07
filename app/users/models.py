@@ -17,14 +17,17 @@ from utils.models import UploadFilepathFactory
 class UserManager(BaseUserManager):
     """Manager for users."""
 
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email, password=None, username=None, **extra_fields):
         """Create, save, and return a new user. Add user to base group."""
         if not email:
             raise ValueError("User must have an email address")
 
         email = self.normalize_email(email)
 
-        user = self.model(username=email, **extra_fields)
+        if username is None:
+            username = email
+
+        user = self.model(username=username, **extra_fields)
         user.set_password(password)
         user.is_active = True
         user.save(using=self._db)
@@ -75,6 +78,11 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
     # Relationships
     profile: Optional["Profile"]
     club_memberships: models.QuerySet
+
+    # Dynamic Properties
+    @property
+    def email(self):
+        return self.profile.email
 
     def __str__(self):
         return self.username

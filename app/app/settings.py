@@ -32,6 +32,10 @@ ALLOWED_HOSTS.extend(
     filter(None, os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(","))
 )
 
+CSRF_TRUSTED_ORIGINS = [host for host in ALLOWED_HOSTS if host.startswith("http")]
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend(["http://0.0.0.0"])
+
 IS_TESTING_MODE = sys.argv[1:2] == ["test"]
 
 # Application definition
@@ -59,6 +63,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -137,8 +142,10 @@ STATICFILES_DIRS = [
 STATIC_URL = "/static/static/"
 MEDIA_URL = "/static/media/"
 
-MEDIA_ROOT = "/vol/web/media"
-STATIC_ROOT = "/vol/web/static"
+# MEDIA_ROOT = "/vol/web/media"
+# STATIC_ROOT = "/vol/web/static"
+MEDIA_ROOT = "/vol/static/media"
+STATIC_ROOT = "/vol/static/static"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

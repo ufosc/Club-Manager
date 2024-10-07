@@ -29,10 +29,10 @@ RUN /py/bin/pip install -r /tmp/requirements.txt && \
 COPY ./scripts /scripts
 
 RUN adduser --no-create-home --system --disabled-password --disabled-login --group django-user && \
-    mkdir -p /vol/web/media && \
-    mkdir -p /vol/web/static && \
+    mkdir -p /vol/static/media && \
+    mkdir -p /vol/static/static && \
     chown -R django-user:django-user /vol && \
-    chmod -R 755 /vol/web && \
+    chmod -R 755 /vol/static && \
     chmod -R +x /scripts
 
 
