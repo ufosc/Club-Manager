@@ -10,6 +10,8 @@ services:
     volumes:
       - ./app:/app
       - club-static:/vol/static
+      - ./generated:/generated
+      # - api-spec:/app/bin
     command: >
       sh -c "python manage.py wait_for_db &&
              python manage.py migrate &&
@@ -52,6 +54,9 @@ volumes:
   club-static:
     name: club-static
     external: true
+  # api-spec:
+  #   name: api-spec
+  #   external: true
 
 networks:
   cluster:

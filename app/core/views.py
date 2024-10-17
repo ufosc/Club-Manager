@@ -16,7 +16,8 @@ from utils.logging import print_error
 def index(request):
     """Base view for site."""
     server_time = timezone.now().strftime("%d/%m/%Y, %H:%M:%S")
-    return render(request, "core/landing.html", context={"time": server_time})
+    events = []
+    return render(request, "core/landing.html", context={"time": server_time, "events": events})
 
 
 def health_check(request):
