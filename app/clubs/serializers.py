@@ -13,7 +13,7 @@ class ClubMemberNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClubMembership
-        fields = ["id", "user_id", "username", "owner", "role", "points"]
+        fields = ["id", "user_id", "username", "owner", "role", "coins"]
 
 
 class ClubSerializer(serializers.ModelSerializer):
@@ -38,4 +38,4 @@ class ClubMembershipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClubMembership
-        fields = ["id", "user_id", "club_id", "role", "owner", "points"]
+        fields = ["id", "user_id", "club_id", "role", "owner", "coins"]

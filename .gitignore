@@ -15,6 +15,7 @@ _ignore_*/
 _depricated/
 __depricated
 _deprecated/
+generated/
 
 # C extensions
 *.so

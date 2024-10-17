@@ -15,7 +15,7 @@ class ClubAdmin(admin.ModelAdmin):
     """Admin config for Clubs."""
 
     inlines = [ClubMembershipInlineAdmin]
-    list_display = ["name", "members_count", "created_at"]
+    list_display = ["name", "id", "members_count", "created_at"]
 
     def members_count(self, obj):
         return obj.memberships.count()
