@@ -54,9 +54,9 @@ volumes:
   club-static:
     name: club-static
     external: true
-  api-spec:
-    name: api-spec
-    external: true
+  # api-spec:
+  #   name: api-spec
+  #   external: true
 
 networks:
   cluster:
