@@ -2,7 +2,7 @@
 User Models.
 """
 
-from typing import Optional
+from typing import ClassVar, Optional
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -27,7 +27,7 @@ class UserManager(BaseUserManager):
         if username is None:
             username = email
 
-        user = self.model(username=username, **extra_fields)
+        user: User = self.model(username=username, **extra_fields)
         user.set_password(password)
         user.is_active = True
         user.save(using=self._db)
@@ -73,7 +73,7 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
 
     USERNAME_FIELD = "username"
 
-    objects = UserManager()
+    objects: ClassVar[UserManager] = UserManager()
 
     # Relationships
     profile: Optional["Profile"]

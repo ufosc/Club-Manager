@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block head %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="container">
+  <form method="POST">
+    {% csrf_token %}
+    
+    {% for field in form.visible_fields %}
+    {{ field.errors }}
+    {{ field.label_tag }}
+    {{ field }}
+    <small>
+      {{ field.help_text }}
+    </small>
+    {% endfor %}
+    
+    {% for hidden in form.hidden_fields %}
+    {{ hidden }}
+    {% endfor %}
+    
+    {% for error in form.non_field_errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+    <input type="submit" value="Login">
+  </form>
+</div>
+{% endblock %}

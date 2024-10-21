@@ -3,4 +3,6 @@ from . import views
 
 app_name = "clubs"
 
-urlpatterns = [path("register/", views.register_user, name="register")]
+urlpatterns = [
+    path("join/", views.join_clubs_view, name="join"),
+]
