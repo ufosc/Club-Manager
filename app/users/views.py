@@ -8,17 +8,21 @@ from django.http import HttpRequest
 from django.shortcuts import render
 from django.http import HttpRequest
 from django.shortcuts import redirect, render
-from django.core.exceptions import ValidationError
+from django.core.exceptions import BadRequest, ValidationError
 from django.urls import reverse
+from rest_framework import status
 
+from clubs.models import Club, Event
+from clubs.services import ClubService
 from users.forms import LoginForm, RegisterForm
 from users.services import UserService
+from utils.models import get_or_none
 
 
 def register_user_view(request: HttpRequest):
     """Add new user to the system."""
-    form = RegisterForm()
     context = {}
+    initial_data = {}
 
     if request.POST:
         form = RegisterForm(data=request.POST)
@@ -40,7 +44,43 @@ def register_user_view(request: HttpRequest):
             user = UserService.register_user(**form_data)
             UserService.login_user(request, user)
 
+            club: Club = data.get("club", None)
+            event: Event = data.get("event", None)
+
+            if club:
+                club_svc = ClubService(club)
+                club_svc.add_member(user)
+
+            if event:
+                club_svc = ClubService(event.club)
+                club_svc.add_member(user)
+                club_svc.record_member_attendance(user, event)
+
             return redirect("clubs:join")
+
+        else:
+            context["form"] = form
+            return render(
+                request,
+                "users/register-user.html",
+                context,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    elif request.method == "GET":
+        club_id = request.GET.get("club", None)
+        event_id = request.GET.get("event", None)
+
+        if club_id:
+            initial_data["club"] = get_or_none(Club, id=club_id)
+
+        if event_id:
+            initial_data["event"] = get_or_none(Event, id=event_id)
+
+        form = RegisterForm(initial=initial_data)
+
+    else:
+        raise BadRequest("Method must be GET or POST.")
 
     context["form"] = form
     return render(request, "users/register-user.html", context)

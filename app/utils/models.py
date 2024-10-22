@@ -1,6 +1,7 @@
 import os
 import uuid
 
+from django.core import exceptions
 from django.db import models
 from django.utils.deconstruct import deconstructible
 
@@ -27,20 +28,15 @@ class UploadFilepathFactory(object):
         return os.path.join("uploads", *nested_dirs, filename)
 
 
-def get_or_none(model: models.Model, query=dict, fail_silently=False, **kwargs):
+def get_or_none(model: models.Model, fail_silently=True, **kwargs):
     """Return object if found, None otherwise."""
     try:
-        objects = model.objects.filter(**query, **kwargs)
-
-        if objects.exists() and objects.count() == 1:
-            return objects.first()
-        elif objects.count() > 1:
-            if fail_silently:
-                return None
-
-            raise model.MultipleObjectsReturned()
-        else:
+        object = model.objects.get(**kwargs)
+        return object
+    except exceptions.MultipleObjectsReturned as e:
+        if fail_silently:
             return None
+        else:
+            raise e
     except Exception:
-        # print_error()
         return None

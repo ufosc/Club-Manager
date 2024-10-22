@@ -38,7 +38,7 @@ class RecurringEventAdmin(admin.ModelAdmin):
 class EventAdmin(admin.ModelAdmin):
     """Admin config for club events."""
 
-    list_display = ["__str__", "location", "event_start", "event_end"]
+    list_display = ["__str__", "id", "location", "event_start", "event_end"]
     ordering = ["event_start"]
 
 

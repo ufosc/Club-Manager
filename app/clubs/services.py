@@ -1,4 +1,5 @@
-from clubs.models import Club, Event
+from django.core import exceptions
+from clubs.models import Club, ClubMembership, Event, EventAttendance
 from core.abstracts.services import ModelService
 from users.models import User
 
@@ -19,13 +20,20 @@ class ClubService(ModelService):
         """Create Club model."""
         return super().create(name=name, logo=logo, **kwargs)
 
+    def _get_user_membership(self, user: User):
+        try:
+            membership = ClubMembership.objects.get(club=self.club, user=user)
+            return membership
+        except ClubMembership.DoesNotExist:
+            raise exceptions.BadRequest(f"User is not a member of {self.club}.")
+
     def get_registration_link(self):
         """Get link for a new user to create account and register."""
         pass
 
-    def register_member(self, user: User):
+    def add_member(self, user: User):
         """Create membership for pre-existing user."""
-        pass
+        ClubMembership.objects.create(club=self.club, user=user)
 
     def increase_member_coins(self, user: User, amount: int = 1):
         """Give the user more coins."""
@@ -37,7 +45,21 @@ class ClubService(ModelService):
 
     def record_member_attendance(self, user: User, event: Event):
         """Record user's attendance for event."""
-        pass
+
+        member = self._get_user_membership(user)
+
+        if event.club.id != self.club.id:
+            raise exceptions.BadRequest(
+                f'Event "{event}" does not belong to club {self.club}.'
+            )
+
+        return EventAttendance.objects.create(member=member, event=event)
+
+    def get_member_attendance(self, user: User):
+        """Get event attendance for user, if they are member."""
+
+        member = self._get_user_membership(user)
+        return EventAttendance.objects.filter(member=member)
 
     def create_event(self):
         """Create new club event."""
@@ -46,6 +68,3 @@ class ClubService(ModelService):
     def create_recurring_event(self):
         """Create new recurring club event."""
         pass
-
-
-

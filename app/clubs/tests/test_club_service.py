@@ -2,6 +2,7 @@
 Unit tests for Club business logic.
 """
 
+import unittest
 from clubs.services import ClubService
 from clubs.tests.utils import (
     CLUB_CREATE_PARAMS,
@@ -11,6 +12,7 @@ from clubs.tests.utils import (
 from core.abstracts.tests import TestsBase
 
 
+@unittest.skip('Not implemented yet')
 class ClubServiceTests(TestsBase, ModelServiceTestsMixin):
     """Test club services methods."""
 

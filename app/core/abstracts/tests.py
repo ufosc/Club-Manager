@@ -1,4 +1,5 @@
 from django import forms
+from django.http import HttpResponse
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.status import HTTP_200_OK
@@ -38,12 +39,34 @@ class ApiTestsBase(TestsBase):
 class ViewsTestsBase(ApiTestsBase):
     """Abstract testing utilities for app views."""
 
-    def assertRenders(self, url: str, *args, **kwargs):
+    def assertRenders(self, url=None, reverse_url=None, *args, **kwargs):
         """Reversible url should return 200."""
-        path = reverse(url, args=[*args], kwargs={**kwargs})
+        path = reverse(url, args=[*args], kwargs={**kwargs}) if reverse_url else url
         res = self.client.get(path)
 
         self.assertEqual(res.status_code, HTTP_200_OK)
+
+        return res
+
+    def assertHasForm(
+        self,
+        res: HttpResponse,
+        form_class: forms.Form,
+        initial_data: dict | None = None,
+    ) -> forms.Form:
+        """Response should have a form object."""
+
+        form: forms.Form | None = res.context.get("form", None)
+        self.assertIsInstance(form, form_class)
+
+        if initial_data:
+            for key, value in initial_data.items():
+                if value:
+                    self.assertIn(key, form.initial.keys())
+
+                self.assertEqual(form.initial.get(key, None), value)
+
+        return form
 
 
 class AuthViewsTestsBase(ViewsTestsBase):
@@ -76,4 +99,3 @@ class FormTestsBase(TestsBase):
             form_data.errors, f"Cleaned form returned errors: {form_data.errors}"
         )
         return res_data
-

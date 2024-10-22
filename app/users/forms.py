@@ -8,12 +8,12 @@ class AuthForm(forms.Form):
     """Base fields for all auth forms."""
 
     password = forms.CharField(widget=forms.PasswordInput())
-    # event = forms.ModelChoiceField(
-    #     widget=forms.HiddenInput(), queryset=Event.objects.all(), required=False
-    # )
-    # club = forms.ModelChoiceField(
-    #     widget=forms.HiddenInput(), queryset=Club.objects.all(), required=False
-    # )
+    event = forms.ModelChoiceField(
+        widget=forms.HiddenInput(), queryset=Event.objects.all(), required=False
+    )
+    club = forms.ModelChoiceField(
+        widget=forms.HiddenInput(), queryset=Club.objects.all(), required=False
+    )
 
 
 class LoginForm(AuthForm):
