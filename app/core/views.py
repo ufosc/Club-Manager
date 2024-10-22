@@ -9,15 +9,18 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.views import exception_handler
 
-from app.settings import IS_TESTING_MODE
+from clubs.services import ClubService
 from utils.logging import print_error
 
 
 def index(request):
     """Base view for site."""
     server_time = timezone.now().strftime("%d/%m/%Y, %H:%M:%S")
-    events = []
-    return render(request, "core/landing.html", context={"time": server_time, "events": events})
+    clubs = ClubService.find()
+
+    return render(
+        request, "core/landing.html", context={"time": server_time, "clubs": clubs}
+    )
 
 
 def health_check(request):

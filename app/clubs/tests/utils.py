@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from random import randint
 
+from django.urls import reverse
 from django.utils import timezone
 from clubs.models import Club, Event
 from core.abstracts.services import ModelService
@@ -44,6 +45,14 @@ def create_test_event(
         description=description,
         **kwargs,
     )
+
+
+def join_club_url(club_id: int):
+    return reverse("clubs:join", kwargs={"club_id": club_id})
+
+
+def club_home_url(club_id: int):
+    return reverse("clubs:home", kwargs={"club_id": club_id})
 
 
 class ModelServiceTestsMixin(object):

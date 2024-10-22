@@ -18,8 +18,17 @@
   <div>
     <h2>Clubs Service</h2>
     <ul>
-      <li><a href="{% url 'clubs:join' %}">Join Club</a></li>
+      <li><a href="{% url 'clubs:available' %}">Available Clubs</a></li>
     </ul>
+    
+    {% for club in clubs %}
+    <h3>-- {{ club }} </h3>
+    <ul>
+      <li><a href="{% url 'clubs:home' club_id=club.id %}">Home</a></li>
+      <li><a href="{% url 'clubs:join' club_id=club.id %}">Join</a></li>
+      
+    </ul>
+    {% endfor %}
   </div>
   <br />
   <a href="{% url 'admin:index' %}" 

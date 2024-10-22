@@ -1,18 +1,10 @@
-from django.urls import reverse
 from rest_framework import status
 from clubs.models import EventAttendance
 from clubs.tests.utils import create_test_club, create_test_event
 from core.abstracts.tests import ViewsTestsBase
 from users.forms import RegisterForm
 from users.models import User
-
-
-def get_register_user_url(**query):
-    return (
-        reverse("users:register")
-        + ("?" if len(query.keys()) > 0 else "")
-        + "&".join([f"{key}={value}" for key, value in query.items()])
-    )
+from users.tests.utils import register_user_url
 
 
 class UserRegisterViewTests(ViewsTestsBase):
@@ -42,7 +34,7 @@ class UserRegisterViewTests(ViewsTestsBase):
 
     def test_get_registration_page(self):
         """Should GET registration page."""
-        url = get_register_user_url()
+        url = register_user_url()
         res = self.assertRenders(url)
         self.assertHasForm(
             res, RegisterForm, initial_data={"club": None, "event": None}
@@ -51,8 +43,8 @@ class UserRegisterViewTests(ViewsTestsBase):
     def test_get_registration_page_with_club(self):
         """Should be able to GET registration page with club as query."""
 
-        url = get_register_user_url(club=self.club.id)
-        self.assertEqual(url, get_register_user_url() + f"?club={self.club.id}")
+        url = register_user_url(club=self.club.id)
+        self.assertEqual(url, register_user_url() + f"?club={self.club.id}")
 
         res = self.assertRenders(url)
         self.assertHasForm(res, RegisterForm, initial_data={"club": self.club})
@@ -60,8 +52,8 @@ class UserRegisterViewTests(ViewsTestsBase):
     def test_get_registration_page_with_event(self):
         """Should be able to GET registration page with event as query."""
 
-        url = get_register_user_url(event=self.event.id)
-        self.assertEqual(url, get_register_user_url() + f"?event={self.event.id}")
+        url = register_user_url(event=self.event.id)
+        self.assertEqual(url, register_user_url() + f"?event={self.event.id}")
 
         res = self.assertRenders(url)
         self.assertHasForm(res, RegisterForm, initial_data={"event": self.event})
@@ -69,7 +61,7 @@ class UserRegisterViewTests(ViewsTestsBase):
     def test_register_user(self):
         """Should create new user on post."""
 
-        url = get_register_user_url()
+        url = register_user_url()
         payload = self.user_payload
 
         self.assertEqual(User.objects.all().count(), 0)
@@ -85,7 +77,7 @@ class UserRegisterViewTests(ViewsTestsBase):
     def test_register_user_with_club(self):
         """Should create new user, add to club."""
 
-        url = get_register_user_url()
+        url = register_user_url()
         payload = {**self.user_payload, "club": self.club.id}
 
         self.assertEqual(User.objects.all().count(), 0)
@@ -97,11 +89,13 @@ class UserRegisterViewTests(ViewsTestsBase):
         user: User = User.objects.all().first()
 
         self.assertUserFields(user, payload)
-        self.assertIn(self.club.id, list(user.club_memberships.values_list("club__id", flat=True)))
+        self.assertIn(
+            self.club.id, list(user.club_memberships.values_list("club__id", flat=True))
+        )
 
     def test_register_user_with_event(self):
         """Should create new user, add to club, mark as attended."""
-        url = get_register_user_url()
+        url = register_user_url()
         payload = {**self.user_payload, "event": self.event.id}
 
         self.assertEqual(User.objects.all().count(), 0)
@@ -113,7 +107,12 @@ class UserRegisterViewTests(ViewsTestsBase):
         user: User = User.objects.all().first()
 
         self.assertUserFields(user, payload)
-        self.assertIn(self.club.id, list(user.club_memberships.values_list("club__id", flat=True)))
+        self.assertIn(
+            self.club.id, list(user.club_memberships.values_list("club__id", flat=True))
+        )
         self.assertEqual(
-            EventAttendance.objects.filter(event__club=self.club, member__user=user).count(), 1
+            EventAttendance.objects.filter(
+                event__club=self.club, member__user=user
+            ).count(),
+            1,
         )

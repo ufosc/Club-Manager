@@ -1,4 +1,5 @@
 from django.core import exceptions
+from django.urls import reverse
 from clubs.models import Club, ClubMembership, Event, EventAttendance
 from core.abstracts.services import ModelService
 from users.models import User
@@ -10,7 +11,10 @@ class ClubService(ModelService):
     model = Club
     club: Club
 
-    def __init__(self, club: Club) -> None:
+    def __init__(self, club: Club | int) -> None:
+        if isinstance(club, int):
+            club = Club.objects.get(id=club)
+
         self.club = club
 
         super().__init__()
@@ -27,9 +31,11 @@ class ClubService(ModelService):
         except ClubMembership.DoesNotExist:
             raise exceptions.BadRequest(f"User is not a member of {self.club}.")
 
-    def get_registration_link(self):
+    @property
+    def join_link(self):
         """Get link for a new user to create account and register."""
-        pass
+
+        return reverse("clubs:join", kwargs={"club_id": self.club.id})
 
     def add_member(self, user: User):
         """Create membership for pre-existing user."""
