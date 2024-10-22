@@ -56,7 +56,7 @@ def register_user_view(request: HttpRequest):
                 club_svc.add_member(user)
                 club_svc.record_member_attendance(user, event)
 
-            return redirect("clubs:join")
+            return redirect("clubs:available-clubs")
 
         else:
             context["form"] = form
