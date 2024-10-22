@@ -4,9 +4,10 @@ Club views for API and rendering html pages.
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from clubs.models import Club
 from clubs.services import ClubService
 from utils.helpers import reverse_query
 
@@ -27,8 +28,9 @@ def join_club_view(request: HttpRequest, club_id: int):
 
 def club_home_view(request: HttpRequest, club_id: int):
     """Base page for a club."""
+    club = get_object_or_404(Club, id=club_id)
 
-    return render(request, "clubs/club-home.html")
+    return render(request, "clubs/club-home.html", context={"club": club})
 
 
 def handle_attendance_view(request: HttpRequest):
