@@ -211,7 +211,6 @@ class Event(EventFields):
         constraints = [
             models.UniqueConstraint(
                 fields=("event_start", "event_end", "club", "name"),
-                # fields=("event_time", "club", "name"),
                 name="unique_event_name_per_timerange_per_club",
             )
         ]

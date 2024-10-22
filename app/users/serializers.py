@@ -29,8 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False)
     clubs = UserClubNestedSerializer(
-        source="club_memberships",
-        many=True,
+        source="club_memberships", many=True, required=False
     )
 
     class Meta:  # defines what is passed to the serializer

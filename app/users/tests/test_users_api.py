@@ -36,7 +36,7 @@ class PublicUserApiTests(TestCase):
         res = self.client.post(CREATE_USER_URL, payload)
 
         # status 201 indicates successesful user creation
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
         user = get_user_model().objects.get(username=payload["email"])
         # securely check password with internal check method
         self.assertTrue(user.check_password(payload["password"]))
