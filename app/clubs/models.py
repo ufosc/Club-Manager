@@ -59,7 +59,7 @@ class ClubMembership(BaseModel):
     owner = models.BooleanField(default=False, blank=True)
 
     # TODO: Should this be split to own model? Keep history of point changes?
-    coins = models.IntegerField(default=0, blank=True)
+    points = models.IntegerField(default=0, blank=True)
 
     class Meta:
         # TODO: Edgecase - owner's user is deleted, deleting membership
@@ -234,3 +234,33 @@ class EventAttendance(BaseModel):
                 name="record_attendance_once_per_member_per_event",
             )
         ]
+
+
+class QRCode(BaseModel):
+    """Store image for QR Codes."""
+
+    get_qrcode_img_filepath = UploadFilepathFactory("")
+
+    image = models.ImageField(null=True, blank=True)
+    url = models.URLField()
+
+
+# class Badge(BaseModel):
+#     """Rewards members get when criteria is met."""
+
+#     club = models.ForeignKey(Club, related_name="badges", on_delete=models.CASCADE)
+
+#     image = models.ImageField()
+#     name = models.CharField(max_length=32)
+
+
+# class PointsBadge(Badge):
+#     """Marks when members reach certain points."""
+
+#     points_required = models.IntegerField()
+
+
+# class AttendanceBadge(Badge):
+#     """Marks when members reach certain points."""
+
+#     points_required = models.IntegerField()
