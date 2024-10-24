@@ -11,3 +11,6 @@ Pillow>=10.2.0,<10.3
 
 # Kafka
 quixstreams>=2.9.0,<2.10
+
+# QRCodes
+segno>=1.6.1,<1.7

@@ -122,6 +122,7 @@ class Profile(BaseModel):
 
     birthday = models.DateField(null=True, blank=True)
 
+    # TODO: Avatar?
     image = models.ImageField(
         upload_to=get_user_profile_filepath,
         default="user/profile.jpeg",
