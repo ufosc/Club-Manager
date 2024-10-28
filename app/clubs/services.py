@@ -73,29 +73,26 @@ class ClubService(ModelService):
         member = self._get_user_membership(user)
         return EventAttendance.objects.filter(member=member)
 
-    def create_event(self, name: str, **kwargs):
-        event_start = 2024-11-2
-        event_end = 2024-11-4
+    def create_event(self,name, event_start, event_end, recurring_event=None):
 
         """Create new club event."""
         if event_start >= event_end:
             raise exceptions.BadRequest("The event start time must be before the end time.")
 
-        # Crear el evento
         event = Event.objects.create(
             club=self.club,
-            name=name,
+            name = name,
             event_start=event_start,
             event_end=event_end,
-            **kwargs
+            recurring_event = recurring_event,
         )
         return event
 
-    def create_recurring_event(self, name, club, start_date, end_date, day, event_start_time, event_end_time, location, description=None):
+    def create_recurring_event(self, name, start_date, end_date, day, event_start_time, event_end_time, location, description=None):
         """Create new recurring club event."""
         recurring_event = RecurringEvent.objects.create(
             name=name,
-            club=club,
+            club=self.club,
             start_date=start_date,
             end_date=end_date,
             day=day,
@@ -104,8 +101,12 @@ class ClubService(ModelService):
             location=location,
             description=description,
         )
-        
-        # Sincronizar los eventos individuales según el rango de fechas
+
         recurring_event.sync_events()
 
         return recurring_event
+    
+    def get_registration_link(self):
+        """Return link to sign up page ?club={club_name}."""
+        base_url = reverse("clubs:register")
+        return f"{base_url}?club={self.club.name}"
