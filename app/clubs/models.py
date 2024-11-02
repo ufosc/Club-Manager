@@ -239,10 +239,15 @@ class EventAttendance(BaseModel):
 class QRCode(BaseModel):
     """Store image for QR Codes."""
 
-    get_qrcode_img_filepath = UploadFilepathFactory("")
+    get_qrcode_img_filepath = UploadFilepathFactory("/qrcodes/")
 
     image = models.ImageField(null=True, blank=True)
     url = models.URLField()
+
+    def set_image(self, path: str, commit=True):
+        """Takes path for image and sets it to the image field."""
+
+        pass
 
 
 # class Badge(BaseModel):
