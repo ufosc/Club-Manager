@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 
-from clubs.models import Club, ClubMembership, Event, RecurringEvent
+from clubs.models import Club, ClubMembership, Event, QRCode, RecurringEvent
 
 
 class ClubMembershipInlineAdmin(admin.StackedInline):
@@ -45,3 +45,4 @@ class EventAdmin(admin.ModelAdmin):
 admin.site.register(Club, ClubAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(RecurringEvent, RecurringEventAdmin)
+admin.site.register(QRCode)
