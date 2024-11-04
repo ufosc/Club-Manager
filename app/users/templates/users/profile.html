@@ -1,9 +1,25 @@
 {% extends 'base.html' %}
-{% block body %}
+{% block head %}
+{% load static %}
 
-<section>
-  <div>User profile</div>
-  <h1>This is the user profile!</h1>
-</section>
+{% endblock %}
+
+{% block body %}
+<div class="profile-container">
+  <div class="profile-header">
+    <img src="{% static 'user/profile.jpeg' %}" alt="Profile Picture" class="profile-picture">
+    <h1>My Profile</h1>
+  </div>
+  <div class="profile-info">
+    <div class="profile-item">First Name:</div>
+    <div class="profile-item">Last Name:</div>
+    <div class="profile-item">Phone Number:</div>
+    <div class="profile-item">Address:</div>
+    <div class="profile-item">State:</div>
+    <div class="profile-item">Zip Code:</div>
+    <div class="profile-item">City:</div>
+  </div>
+  <button class="edit-button">Edit</button>
+</div>
 
 {% endblock %}
