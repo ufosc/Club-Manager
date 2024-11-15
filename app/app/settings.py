@@ -50,9 +50,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
+    "django_browser_reload",
     "drf_spectacular",  # used for testing
     "core",
     "users",
+    "users.authentication",
     "clubs",
 ]
 
@@ -66,6 +68,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
 ]
+
+if DEBUG:
+    MIDDLEWARE.append("django_browser_reload.middleware.BrowserReloadMiddleware")
 
 ROOT_URLCONF = "app.urls"
 
@@ -167,3 +172,5 @@ SPECTACULAR_SETTINGS = {
 }
 
 AUTH_USER_MODEL = "users.User"
+LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "/auth/login/"

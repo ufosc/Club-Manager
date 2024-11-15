@@ -24,9 +24,13 @@ from drf_spectacular.views import (
 from django.contrib import admin
 from django.urls import path, include
 
+from app.settings import DEBUG
+
 urlpatterns = [
     path("", include("core.urls")),
     path("admin/", admin.site.urls),
+    path("auth/", include("users.authentication.urls")),
+    path("auth/", include("django.contrib.auth.urls")),
     path("api/v1/schema/club-manager", SpectacularAPIView.as_view(), name="api-schema"),
     path("api/docs/", RedirectView.as_view(url="/api/v1/docs/"), name="api-docs-base"),
     path(
@@ -39,3 +43,8 @@ urlpatterns = [
     path("api/v1/user/", include("users.api_urls")),
     path("api/v1/club/", include("clubs.api_urls")),
 ]
+
+if DEBUG:
+    urlpatterns.append(
+        path("__reload__/", include("django_browser_reload.urls")),
+    )
