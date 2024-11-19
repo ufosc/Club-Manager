@@ -174,3 +174,9 @@ SPECTACULAR_SETTINGS = {
 AUTH_USER_MODEL = "users.User"
 LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "/auth/login/"
+
+# Email config
+EMAIL_BACKEND = "core.emails.CustomEmailBackend"
+
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
