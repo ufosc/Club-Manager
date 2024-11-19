@@ -8,6 +8,7 @@ django-cors-headers>=3.13.0,<3.14
 django-admin-tools>=0.9.3,<1.0
 coverage>=7.4.1,<7.5
 Pillow>=10.2.0,<10.3
+django-browser-reload>=1.17.0,<1.18
 
 # Kafka
 quixstreams>=2.9.0,<2.10

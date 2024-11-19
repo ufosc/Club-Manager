@@ -76,7 +76,8 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
-    username = models.CharField(max_length=64, unique=True)
+    username = models.CharField(max_length=32, unique=True)
+    email = models.EmailField(max_length=32, unique=True)
 
     date_joined = models.DateTimeField(auto_now_add=True, editable=False, blank=True)
     date_modified = models.DateTimeField(auto_now=True, editable=False, blank=True)
@@ -91,8 +92,12 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
 
     # Dynamic Properties
     @property
-    def email(self):
-        return self.profile.email
+    def first_name(self):
+        return self.profile.first_name
+
+    @property
+    def last_name(self):
+        return self.profile.last_name
 
     def __str__(self):
         return self.username
@@ -107,7 +112,7 @@ class Profile(BaseModel):
         User, primary_key=True, related_name="profile", on_delete=models.CASCADE
     )
 
-    email = models.EmailField(max_length=128, unique=True)
+    # email = models.EmailField(max_length=128, unique=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
 
     first_name = models.CharField(max_length=255, blank=True, null=True)
@@ -132,6 +137,11 @@ class Profile(BaseModel):
     @property
     def name(self):
         return f"{self.first_name or ''} {self.last_name or ''}".strip()
+
+    # Dynamic Properties
+    @property
+    def email(self):
+        return self.user.email
 
     class Meta:
         _is_unique_nonempty_phone = models.Q(
