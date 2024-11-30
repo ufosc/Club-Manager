@@ -14,6 +14,8 @@ import os
 from pathlib import Path
 import sys
 
+from sendgrid.sendgrid import SendGridAPIClient
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +29,7 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-changeme")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(os.environ.get("DEBUG", 0)))
+TESTING = sys.argv[1:2] == ["test"]
 
 ALLOWED_HOSTS = []
 ALLOWED_HOSTS.extend(
@@ -178,5 +181,15 @@ LOGIN_URL = "/auth/login/"
 # Email config
 EMAIL_BACKEND = "core.emails.CustomEmailBackend"
 
-if DEBUG:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# if DEBUG:
+#     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", None)
+
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_HOST_USER = "apikey"
+EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_CLIENT = SendGridAPIClient(SENDGRID_API_KEY) if not TESTING else None

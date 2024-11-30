@@ -16,6 +16,16 @@
       "name": "django",
       "depth": 5,
       "includeAllSymbols": true
+    },
+    {
+      "name": "sendgrid",
+      "depth": 3,
+      "includeAllSymbols": true
+    },
+    {
+      "name": "typing_extensions",
+      "depth": 3,
+      "includeAllSymbols": true
     }
   ],
   "[python]": {
@@ -25,8 +35,13 @@
       "source.organizeImports": "explicit",
       "source.unusedImports": "explicit",
       "source.fixAll": "explicit"
-    }
+    },
+    "diffEditor.codeLens": false
   },
+  "python.REPL.enableREPLSmartSend": false,
+  "python.testing.unittestArgs": ["-v", "-s", "./app", "-p", "test_*.py"],
+  "python.testing.pytestEnabled": false,
+  "python.testing.unittestEnabled": true
 
   // "flake8.ignorePatterns": ["migrations/*"]
 }
