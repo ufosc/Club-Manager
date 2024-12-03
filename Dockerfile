@@ -42,5 +42,5 @@ COPY ./app /app
 ENV PATH="/scripts:/py/bin:/usr/bin:$PATH"
 USER django-user
 
-VOLUME /vol/web
+VOLUME /vol/web 
 CMD ["/scripts/entrypoint.sh"]

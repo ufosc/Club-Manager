@@ -4,7 +4,7 @@ Django cmmand to wait for the database to be available
 
 import time
 
-from psycopg2 import OperationalError as Psycopg2OpError
+from psycopg2 import OperationalError as Psycopg2OpError  # type: ignore
 
 from django.db import connections
 from django.db.utils import OperationalError
@@ -23,7 +23,7 @@ class Command(BaseCommand):
             try:
                 # Use default checks
                 self.check(databases=["default"])
-                
+
                 # Manually check connection
                 db = connections["default"]
                 db.cursor()
