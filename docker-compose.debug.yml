@@ -2,24 +2,24 @@ services:
   app:
     build:
       context: .
+      dockerfile: ./Dockerfile
       args:
         - DEV=true
-    container_name: club-app
-    ports:
-      - '8000:8000'
-    volumes:
-      - ./app:/app
     command: >
-      sh -c "python manage.py wait_for_db &&
+      sh -c "pip install debugpy -t /tmp &&
+             python manage.py wait_for_db &&
              python manage.py migrate &&
              python manage.py init_superuser &&
-             python manage.py runserver 0.0.0.0:8000"
-    # env_file:
-    #   - .env
+             python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000"
+    ports:
+      - 8000:8000
+      - 5678:5678
+    volumes:
+      - ./app:/app
     environment:
       - DJANGO_ENV=dev
-      - DB_HOST=osc-dev-db
-      - DB_NAME=devdatabase
+      - DB_HOST=osc-debug-db
+      - DB_NAME=devdb
       - DB_USER=devuser
       - DB_PASS=devpass
       - DEBUG=1
@@ -30,27 +30,22 @@ services:
       - DJANGO_SUPERUSER_PASS=${DJANGO_SUPERUSER_PASS:-changeme}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER}
       - EMAIL_HOST_PASS=${EMAIL_HOST_PASS}
-      - CONSOLE_EMAIL_BACKEND=${CONSOLE_EMAIL_BACKEND:-1}
-      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+
+      - SYS_CELERY_ENABLED=0
+
     depends_on:
       - postgres
 
   postgres:
     image: postgres:13-alpine
-    container_name: osc-dev-db
+    container_name: osc-debug-db
     volumes:
-      - postgres-osc-dev:/var/lib/postgresql/data
+      - gef-postgres:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=devdatabase
+      - POSTGRES_DB=devdb
       - POSTGRES_USER=devuser
       - POSTGRES_PASSWORD=devpass
 
-  coverage:
-    image: nginx
-    ports:
-      - '8001:80'
-    volumes:
-      - ./app/htmlcov:/usr/share/nginx/html
-
 volumes:
-  postgres-osc-dev:
+  gef-postgres:
+    name: osc-debug-db

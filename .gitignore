@@ -7,7 +7,7 @@ _*
 
 # VSCode
 # .vscode/
-docker-compose.debug.yml
+# docker-compose.debug.yml
 
 # Custom
 _ignore/

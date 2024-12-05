@@ -33,12 +33,14 @@ RUN adduser --no-create-home --system --disabled-password --disabled-login --gro
     mkdir -p /vol/static/static && \
     chown -R django-user:django-user /vol && \
     chmod -R 755 /vol/static && \
-    chmod -R +x /scripts
+    chmod -R +x /scripts && \
+    mkdir /tmp && \
+    chown -R django-user:django-user /tmp
 
 
 COPY ./app /app
 ENV PATH="/scripts:/py/bin:/usr/bin:$PATH"
 USER django-user
 
-VOLUME /vol/web
+VOLUME /vol/web 
 CMD ["/scripts/entrypoint.sh"]

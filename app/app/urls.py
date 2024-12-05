@@ -31,8 +31,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("users.authentication.urls")),
     path("auth/", include("django.contrib.auth.urls")),
-    path("api/v1/schema/club-manager", SpectacularAPIView.as_view(), name="api-schema"),
     path("api/docs/", RedirectView.as_view(url="/api/v1/docs/"), name="api-docs-base"),
+    path("api/v1/schema/club-manager", SpectacularAPIView.as_view(), name="api-schema"),
     path(
         "api/v1/docs/",
         SpectacularSwaggerView.as_view(url_name="api-schema"),

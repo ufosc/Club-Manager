@@ -31,13 +31,13 @@ class UserManager(BaseUserManager):
         last_name = extra_fields.pop("last_name", None)
         phone = extra_fields.pop("phone", None)
 
-        user: User = self.model(username=username, **extra_fields)
+        user: User = self.model(username=username, email=email, **extra_fields)
         user.set_password(password)
         user.is_active = True
         user.save(using=self._db)
 
         Profile.objects.create(
-            email=email,
+            # email=email,
             user=user,
             first_name=first_name,
             last_name=last_name,
