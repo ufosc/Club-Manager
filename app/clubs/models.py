@@ -3,6 +3,8 @@ Club models.
 """
 
 # from datetime import datetime, timedelta
+from pathlib import Path
+from django.core.files import File
 from django.utils import timezone
 from django.utils.timezone import datetime, timedelta
 
@@ -12,11 +14,12 @@ from django.utils.translation import gettext_lazy as _
 from core.abstracts.models import BaseModel, UniqueModel
 from users.models import User
 from utils.dates import get_day_count
+from utils.formatting import format_bytes
 from utils.models import UploadFilepathFactory
 
 
 # TODO: Implement RBAC, custom roles
-# Ref: https://medium.com/@subhamx/role-based-access-control-in-django-the-right-features-to-the-right-users-9e93feb8a3b1
+# Ref: https://medium.com/@subhamx/role-based-access-control-in-django-the-right-features-to-the-right-users-9e93feb8a3b1 # noqa: E501
 class ClubRoles(models.TextChoices):
     PRESIDENT = "president", _("President")
     OFFICER = "officer", _("Officer")
@@ -239,15 +242,33 @@ class EventAttendance(BaseModel):
 class QRCode(BaseModel):
     """Store image for QR Codes."""
 
-    get_qrcode_img_filepath = UploadFilepathFactory("/qrcodes/")
+    qrcode_upload_path = UploadFilepathFactory("clubs/qrcodes/")
 
-    image = models.ImageField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True, upload_to=qrcode_upload_path)
     url = models.URLField()
 
-    def set_image(self, path: str, commit=True):
+    def save_image(self, filepath: str):
         """Takes path for image and sets it to the image field."""
 
-        pass
+        path = Path(filepath)
+
+        with path.open(mode="rb") as f:
+            self.image = File(f, name=f.name)
+            self.save()
+
+    def __str__(self) -> str:
+        return self.url
+
+    @property
+    def width(self):
+        if self.image:
+            return self.image.width
+
+    @property
+    def size(self):
+        # if self.image is not None and hasattr(self.image, 'size'):
+        if self.image:
+            return format_bytes(self.image.size)
 
 
 # class Badge(BaseModel):

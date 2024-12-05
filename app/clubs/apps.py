@@ -6,6 +6,6 @@ class ClubConfig(AppConfig):
     name = "clubs"
 
     def ready(self) -> None:
-        from . import signals
+        from . import signals  # noqa: F401
 
         return super().ready()
