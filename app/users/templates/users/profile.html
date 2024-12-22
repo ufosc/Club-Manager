@@ -1,24 +1,50 @@
 {% extends 'base.html' %}
 {% block head %}
 {% load static %}
+<link rel="stylesheet" href="{% static 'user/user-profile.css' %}">
+<script src="{% static 'user/user-profile.js' %}" defer></script>
 
 {% endblock %}
 
 {% block body %}
 <div class="profile-container">
   <div class="profile-header">
-    <img src="{% static 'user/profile.jpeg' %}" alt="Profile Picture" class="profile-picture">
+    <div class="profile-picture-container">
+      <img src="{% static 'user/profile.jpeg' %}" alt="Profile Picture" class="profile-picture">
+    </div>
     <h1>My Profile</h1>
   </div>
   <div class="profile-info">
-    <div class="profile-item">First Name:</div>
-    <div class="profile-item">Last Name:</div>
-    <div class="profile-item">Phone Number:</div>
-    <div class="profile-item">Address:</div>
-    <div class="profile-item">State:</div>
-    <div class="profile-item">Zip Code:</div>
-    <div class="profile-item">City:</div>
+    <div class="profile-item">
+      <span class="field-label">First Name:</span>
+      <span class="field-value">Jane</span>
+    </div>
+    <div class="profile-item">
+      <span class="field-label">Last Name:</span>
+      <span class="field-value">Doe</span>
+    </div>
+    <div class="profile-item">
+      <span class="field-label">Phone Number:</span>
+      <span class="field-value">111-222-3333</span>
+    </div>
+    <div class="profile-item">
+      <span class="field-label">Address:</span>
+      <span class="field-value">123 Main St</span>
+    </div>
+    <div class="profile-item">
+      <span class="field-label">State:</span>
+      <span class="field-value">FL</span>
+    </div>
+    <div class="profile-item">
+      <span class="field-label">Zip Code:</span>
+      <span class="field-value">32601</span>
+    </div>
+    <div class="profile-item">
+      <span class="field-label">City:</span>
+      <span class="field-value">Gainesville</span>
+    </div>
   </div>
+
   <button class="edit-button">Edit</button>
 </div>
 
