@@ -40,24 +40,6 @@ class UserRegisterViewTests(ViewsTestsBase):
             res, RegisterForm, initial_data={"club": None, "event": None}
         )
 
-    def test_get_registration_page_with_club(self):
-        """Should be able to GET registration page with club as query."""
-
-        url = register_user_url(club=self.club.id)
-        self.assertEqual(url, register_user_url() + f"?club={self.club.id}")
-
-        res = self.assertRenders(url)
-        self.assertHasForm(res, RegisterForm, initial_data={"club": self.club})
-
-    def test_get_registration_page_with_event(self):
-        """Should be able to GET registration page with event as query."""
-
-        url = register_user_url(event=self.event.id)
-        self.assertEqual(url, register_user_url() + f"?event={self.event.id}")
-
-        res = self.assertRenders(url)
-        self.assertHasForm(res, RegisterForm, initial_data={"event": self.event})
-
     def test_register_user(self):
         """Should create new user on post."""
 

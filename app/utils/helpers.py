@@ -1,8 +1,10 @@
 from django.urls import reverse
 
 
-def reverse_query(viewname, query=dict, **kwargs):
+def reverse_query(viewname, query=None, **kwargs):
     """Wraps django's reverse function to add query params."""
+    query = query if query else {}
+
     return (
         reverse(viewname, **kwargs)
         + ("?" if len(query.keys()) > 0 else "")

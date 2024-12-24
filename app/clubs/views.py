@@ -9,18 +9,12 @@ from django.urls import reverse
 
 from clubs.models import Club, Event
 from clubs.services import ClubService
-from utils.helpers import reverse_query
 
 
-# TODO: Automate auth redirect with django
-# @login_required()
+@login_required()
 def join_club_view(request: HttpRequest, club_id: int):
     """Registers a new or existing user to a club."""
     club = get_object_or_404(Club, id=club_id)
-
-    if not request.user.is_authenticated:
-        url = reverse_query("users:register", query={"club": club.id})
-        return redirect(url)
 
     club_svc = ClubService(club)
     club_svc.add_member(request.user)

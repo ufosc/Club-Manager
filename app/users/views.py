@@ -51,7 +51,10 @@ def register_user_view(request: HttpRequest):
                 club_svc.add_member(user)
                 club_svc.record_member_attendance(user, event)
 
-            return redirect("clubs:available")
+            if "next" in request.GET:
+                return redirect(request.GET.get("next"))
+            else:
+                return redirect("clubs:available")
 
         else:
             context["form"] = form
@@ -79,37 +82,6 @@ def register_user_view(request: HttpRequest):
 
     context["form"] = form
     return render(request, "users/register-user.html", context)
-
-
-# def login_user_view(request: HttpRequest):
-#     """Authenticate user's credentials, create user session."""
-#     form = LoginForm()
-#     context = {}
-
-#     if request.POST:
-#         form = LoginForm(data=request.POST)
-
-#         if form.is_valid():
-#             data = form.cleaned_data
-
-#             username = data.get("username", None)
-#             password = data.get("password", None)
-
-#             user = UserService.authenticate_user(
-#                 request, username_or_email=username, password=password
-#             )
-#             UserService.login_user(request, user)
-
-#             return redirect("users:profile")
-
-#     context["form"] = form
-#     return render(request, "users/login-user.html", context)
-
-
-# @login_required()
-# def logout_user_view(request: HttpRequest):
-#     """Clear session of current user."""
-#     return logout_then_login(request, reverse("users:login"))
 
 
 @login_required()
