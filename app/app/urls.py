@@ -42,8 +42,8 @@ urlpatterns = [
     ),
     path("users/", include("users.urls")),
     path("clubs/", include("clubs.urls")),
-    path("api/v1/user/", include("users.api_urls")),
-    path("api/v1/club/", include("clubs.api_urls")),
+    path("api/v1/user/", include("users.apis")),
+    path("api/v1/club/", include("clubs.apis")),
 ]
 
 if DEBUG:
