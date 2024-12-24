@@ -35,10 +35,7 @@ ALLOWED_HOSTS.extend(
 )
 
 CSRF_TRUSTED_ORIGINS = [host for host in ALLOWED_HOSTS if host.startswith("http")]
-if DEBUG:
-    CSRF_TRUSTED_ORIGINS.extend(["http://0.0.0.0"])
 
-IS_TESTING_MODE = sys.argv[1:2] == ["test"]
 
 # Application definition
 
@@ -51,8 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
-    "django_browser_reload",
-    "drf_spectacular",  # used for testing
+    "drf_spectacular",
     "core",
     "users",
     "users.authentication",
@@ -70,8 +66,6 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
 ]
 
-if DEBUG:
-    MIDDLEWARE.append("django_browser_reload.middleware.BrowserReloadMiddleware")
 
 ROOT_URLCONF = "app.urls"
 
@@ -189,3 +183,17 @@ EMAIL_HOST_USER = "apikey"
 EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+
+if DEBUG:
+    INSTALLED_APPS.append("debug_toolbar")
+    INSTALLED_APPS.append("django_browser_reload")
+    INSTALLED_APPS.append("django_extensions")
+
+    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+    MIDDLEWARE.append("django_browser_reload.middleware.BrowserReloadMiddleware")
+
+    CSRF_TRUSTED_ORIGINS.extend(["http://0.0.0.0"])
+    INTERNAL_IPS = [
+        "127.0.0.1",
+    ]

@@ -2,11 +2,98 @@
 Abstract models for common fields.
 """
 
+from typing import Any, ClassVar, Generic, MutableMapping, Optional, Self
 from django.db import models
 import uuid
 
 
-class BaseModel(models.Model):
+from utils.types import T
+
+
+class ManagerBase(models.Manager, Generic[T]):
+    """Extends django manager for improved db access."""
+
+    def create(self, **kwargs) -> T:
+        """Create new model."""
+        return super().create(**kwargs)
+
+    def first(self) -> T | None:
+        """Return first object in queryset, or none."""
+        return super().first()
+
+    def find_one(self, **kwargs) -> Optional[T]:
+        """Return first model matching query, or none."""
+        return self.filter_one(**kwargs)
+
+    def find_by_id(self, id: int) -> Optional[T]:
+        """Return model if exists."""
+        return self.find_one(id=id)
+
+    def find(self, **kwargs) -> Optional[T]:
+        """Return models matching kwargs, if exist."""
+        return self.filter(**kwargs)
+
+    def filter_one(self, **kwargs) -> Optional[T]:
+        """Find object matching any of the fields (or)."""
+        query = self.all().order_by("-id")
+
+        for key, value in kwargs.items():
+            res = query.filter(**{key: value})
+
+            if res.exists():
+                query = res
+
+        if query.count() < self.count():
+            return query.first()
+        else:
+            return None
+
+    def get(self, *args, **kwargs) -> T:
+        """Return object matching query, throw error if not found."""
+        return super().get(*args, **kwargs)
+
+    def get_by_id(self, id: int) -> T:
+        """Return object with id, throw error if not found."""
+        return self.get(id=id)
+
+    def get_or_create(
+        self, defaults: MutableMapping[str, Any] | None = None, **kwargs
+    ) -> tuple[T, bool]:
+        return super().get_or_create(defaults, **kwargs)
+
+    def update_one(self, id: int, **kwargs) -> Optional[T]:
+        """Update model if it exists."""
+        obj = self.find_by_id(id=id)
+
+        if obj:
+            self.filter(id=id).update(**kwargs)
+            obj.refresh_from_db(using=self._db)
+
+        return obj
+
+    def update_many(self, query: dict, **kwargs) -> models.QuerySet[T]:
+        """Update models with kwargs if they match query."""
+        self.filter(**query).update(**kwargs)
+        return self.filter(**query)
+
+    def delete_one(self, id: int) -> Optional[T]:
+        """Delete model if exists."""
+        obj = self.find_by_id(id)
+
+        if obj:
+            self.filter(id=id).delete()
+
+        return obj
+
+    def delete_many(self, **kwargs) -> models.QuerySet[T]:
+        """Delete models that match query."""
+        objs = self.filter(**kwargs)
+        objs.delete()
+
+        return objs
+
+
+class ModelBase(models.Model):
     """
     Default fields for all models.
 
@@ -17,6 +104,8 @@ class BaseModel(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
+
+    objects: ClassVar[ManagerBase[Self]] = ManagerBase[Self]()
 
     def __str__(self) -> str:
         if hasattr(self, "name"):
@@ -30,7 +119,7 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class UniqueModel(BaseModel):
+class UniqueModel(ModelBase):
     """Default fields for globally unique database objects.
 
     id: Technical id and primary key, never revealed publicly outside of db.

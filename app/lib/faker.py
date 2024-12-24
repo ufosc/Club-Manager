@@ -7,9 +7,10 @@ from faker import Faker
 class CustomFaker(Faker):
     """Wrap Faker class to add custom methods."""
 
-    def lorem(self, word_count: int = 2):
-        """Create a string with fake words."""
-        return " ".join(fake.words(word_count, unique=True))
+    def title(self, word_count: int = 3):
+        """Create a fake display name with specified word count."""
+
+        return self.sentence(nb_words=word_count).title()
 
 
 fake = CustomFaker("en_US")

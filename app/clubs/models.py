@@ -4,6 +4,7 @@ Club models.
 
 # from datetime import datetime, timedelta
 from pathlib import Path
+from typing import ClassVar, Optional
 from django.core.files import File
 from django.utils import timezone
 from django.utils.timezone import datetime, timedelta
@@ -11,7 +12,7 @@ from django.utils.timezone import datetime, timedelta
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from core.abstracts.models import BaseModel, UniqueModel
+from core.abstracts.models import ManagerBase, ModelBase, UniqueModel
 from users.models import User
 from utils.dates import get_day_count
 from utils.formatting import format_bytes
@@ -48,7 +49,7 @@ class Club(UniqueModel):
     memberships: models.QuerySet["ClubMembership"]
 
 
-class ClubMembership(BaseModel):
+class ClubMembership(ModelBase):
     """Connection between user and club."""
 
     club = models.ForeignKey(Club, related_name="memberships", on_delete=models.CASCADE)
@@ -78,7 +79,7 @@ class ClubMembership(BaseModel):
         ]
 
 
-class EventFields(BaseModel):
+class EventFields(ModelBase):
     """Common fields for club event models."""
 
     name = models.CharField(max_length=128)
@@ -185,6 +186,22 @@ class RecurringEvent(EventFields):
             event.save()
 
 
+class EventManager(ManagerBase["Event"]):
+    """Manage event queries."""
+
+    def create(
+        self,
+        club: Club,
+        name: str,
+        event_start: Optional[datetime] = None,
+        event_end: Optional[datetime] = None,
+        **kwargs,
+    ):
+        return super().create(
+            club=club, name=name, event_start=event_start, event_end=event_end, **kwargs
+        )
+
+
 class Event(EventFields):
     """
     Record future events put on by the club.
@@ -205,9 +222,15 @@ class Event(EventFields):
         related_name="events",
     )
 
+    # Overrides
+    objects: ClassVar[EventManager] = EventManager()
+
     def __str__(self) -> str:
 
-        return super().__str__() + f' ({self.event_start.strftime("%a %m/%d")})'
+        if self.event_start:
+            return super().__str__() + f' ({self.event_start.strftime("%a %m/%d")})'
+
+        return super().__str__()
 
     class Meta:
 
@@ -219,7 +242,7 @@ class Event(EventFields):
         ]
 
 
-class EventAttendance(BaseModel):
+class EventAttendance(ModelBase):
     """Records when members attend club event."""
 
     event = models.ForeignKey(
@@ -239,7 +262,7 @@ class EventAttendance(BaseModel):
         ]
 
 
-class QRCode(BaseModel):
+class QRCode(ModelBase):
     """Store image for QR Codes."""
 
     qrcode_upload_path = UploadFilepathFactory("clubs/qrcodes/")
@@ -256,9 +279,7 @@ class QRCode(BaseModel):
             self.image = File(f, name=f.name)
             self.save()
 
-    def __str__(self) -> str:
-        return self.url
-
+    # Dynamic Properties
     @property
     def width(self):
         if self.image:
@@ -269,6 +290,13 @@ class QRCode(BaseModel):
         # if self.image is not None and hasattr(self.image, 'size'):
         if self.image:
             return format_bytes(self.image.size)
+
+    # Overrides
+    def __str__(self) -> str:
+        return self.url
+
+    class Meta:
+        verbose_name = "QR Code"
 
 
 # class Badge(BaseModel):

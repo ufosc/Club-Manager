@@ -5,12 +5,12 @@ Logging and exception utils.
 import logging
 import traceback
 
-from app.settings import IS_TESTING_MODE
+from app.settings import TESTING
 
 
 def print_error():
     """Log an error with stacktrace that's been handled via try/except."""
-    if IS_TESTING_MODE:
+    if TESTING:
         return
 
     tb = traceback.format_exc()

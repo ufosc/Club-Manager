@@ -10,7 +10,7 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 
-from core.abstracts.models import BaseModel, UniqueModel
+from core.abstracts.models import ModelBase, UniqueModel
 from utils.models import UploadFilepathFactory
 
 
@@ -103,7 +103,7 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
         return self.username
 
 
-class Profile(BaseModel):
+class Profile(ModelBase):
     """User information."""
 
     get_user_profile_filepath = UploadFilepathFactory("users/profiles/")

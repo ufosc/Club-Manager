@@ -10,7 +10,7 @@ class CoreEmailsTests(TestsBase):
     def test_send_email(self):
         """Should send an email via email backend."""
 
-        subject = fake.lorem(4)
+        subject = fake.title(4)
         message = fake.paragraph(5)
         mail.send_mail(
             subject=subject,
