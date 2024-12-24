@@ -16,7 +16,6 @@ from clubs.models import Club, Event
 from clubs.services import ClubService
 from users.forms import LoginForm, RegisterForm
 from users.services import UserService
-from utils.models import get_or_none
 
 
 def register_user_view(request: HttpRequest):
@@ -72,10 +71,10 @@ def register_user_view(request: HttpRequest):
         event_id = request.GET.get("event", None)
 
         if club_id:
-            initial_data["club"] = get_or_none(Club, id=club_id)
+            initial_data["club"] = Club.objects.find_by_id(club_id)
 
         if event_id:
-            initial_data["event"] = get_or_none(Event, id=event_id)
+            initial_data["event"] = Event.objects.find_by_id(event_id)
 
         form = RegisterForm(initial=initial_data)
 

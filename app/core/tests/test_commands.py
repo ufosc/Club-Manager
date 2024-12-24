@@ -2,6 +2,7 @@
 Test custom Django management commands.
 """
 
+import os
 from unittest.mock import patch
 
 from psycopg2 import OperationalError as Psycopg2Error  # type: ignore
@@ -9,6 +10,9 @@ from psycopg2 import OperationalError as Psycopg2Error  # type: ignore
 from django.core.management import call_command
 from django.db.utils import OperationalError
 from django.test import TestCase
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 # mocking check command to simulate response
@@ -44,3 +48,35 @@ class CommandTests(TestCase):
         # only call command 6 times (2 + 3 + 1)
         self.assertEqual(patched_check.call_count, 6)
         patched_check.assert_called_with(databases=["default"])
+
+    @patch("core.management.commands.init_superuser.Command.check")
+    def test_init_superuser_create(self, *args, **kwargs):
+        """Should create new superuser."""
+
+        self.assertEqual(User.objects.count(), 0)
+        call_command("init_superuser")
+
+        self.assertEqual(User.objects.count(), 1)
+
+    @patch("core.management.commands.init_superuser.Command.check")
+    def test_init_superuser_not_debug(self, *args, **kwargs):
+        """Should not create super user if not debug mode."""
+
+        os.environ["DEBUG"] = "0"
+        call_command("init_superuser")
+
+        self.assertEqual(User.objects.count(), 0)
+
+    @patch("core.management.commands.init_superuser.Command.check")
+    def test_init_superuser_exists(self, *args, **kwargs):
+        """Should not create super user if one already exists."""
+
+        email = os.environ.get("DJANGO_SUPERUSER_EMAIL")
+        password = os.environ.get("DJANGO_SUPERUSER_PASS")
+
+        email = "test-" + email  # Force different email
+        User.objects.create_superuser(email=email, password=password)
+        self.assertEqual(User.objects.count(), 1)
+
+        call_command("init_superuser")
+        self.assertEqual(User.objects.count(), 1)

@@ -197,3 +197,9 @@ if DEBUG:
     INTERNAL_IPS = [
         "127.0.0.1",
     ]
+
+if TESTING:
+    INSTALLED_APPS.append("core.mock")
+
+    # Force disable notifications
+    EMAIL_HOST_PASSWORD = None

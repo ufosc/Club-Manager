@@ -18,7 +18,6 @@ class ManagerBase(models.Manager, Generic[T]):
         return super().create(**kwargs)
 
     def first(self) -> T | None:
-        """Return first object in queryset, or none."""
         return super().first()
 
     def find_one(self, **kwargs) -> Optional[T]:
@@ -26,27 +25,27 @@ class ManagerBase(models.Manager, Generic[T]):
         return self.filter_one(**kwargs)
 
     def find_by_id(self, id: int) -> Optional[T]:
-        """Return model if exists."""
+        """Return model if exists, or none."""
         return self.find_one(id=id)
 
-    def find(self, **kwargs) -> Optional[T]:
-        """Return models matching kwargs, if exist."""
-        return self.filter(**kwargs)
+    def find(self, **kwargs) -> Optional[models.QuerySet[T]]:
+        """Return models matching kwargs, or none."""
+        query = self.filter(**kwargs)
+
+        if not query.exists():
+            return None
+
+        return query
 
     def filter_one(self, **kwargs) -> Optional[T]:
         """Find object matching any of the fields (or)."""
-        query = self.all().order_by("-id")
 
-        for key, value in kwargs.items():
-            res = query.filter(**{key: value})
+        query = self.filter(**kwargs).order_by("-id")
 
-            if res.exists():
-                query = res
-
-        if query.count() < self.count():
-            return query.first()
-        else:
+        if not query.exists():
             return None
+        else:
+            return query.first()
 
     def get(self, *args, **kwargs) -> T:
         """Return object matching query, throw error if not found."""
