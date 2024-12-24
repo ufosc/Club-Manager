@@ -2,6 +2,7 @@ from django import forms
 from django.http import HttpResponse
 from django.test import TestCase
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.status import HTTP_200_OK
 from rest_framework.test import APIClient
 
@@ -34,6 +35,13 @@ class ApiTestsBase(TestsBase):
 
     def setUp(self):
         self.client = APIClient()
+
+    def assertOk(self, reverse_url: str, reverse_kwargs=None):
+        reverse_kwargs = reverse_kwargs if reverse_kwargs else {}
+        url = reverse(reverse_url, **reverse_kwargs)
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
 
 class ViewsTestsBase(ApiTestsBase):
