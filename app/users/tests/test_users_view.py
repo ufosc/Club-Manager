@@ -1,13 +1,14 @@
 from rest_framework import status
+
 from clubs.models import EventAttendance
 from clubs.tests.utils import create_test_club, create_test_event
-from core.abstracts.tests import ViewsTestsBase
+from core.abstracts.tests import ViewTestsBase
 from users.forms import RegisterForm
 from users.models import User
 from users.tests.utils import register_user_url
 
 
-class UserRegisterViewTests(ViewsTestsBase):
+class UserRegisterViewTests(ViewTestsBase):
     """Tests for user registration form."""
 
     user_payload = {

@@ -3,12 +3,13 @@ User Models.
 """
 
 from typing import ClassVar, Optional
-from django.db import models
+
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
+from django.db import models
 
 from core.abstracts.models import ModelBase, UniqueModel
 from utils.models import UploadFilepathFactory

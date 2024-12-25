@@ -6,6 +6,19 @@ dev: build
 
 test: build
 	docker-compose run --rm app sh -c "python manage.py test"
+	
+format: ./app
+	docker-compose run --rm app sh -c "black --check . && \
+	  autoflake --in-place --remove-all-unused-imports --remove-unused-variables --check --quiet --recursive --exclude "migrations" . && \
+	  isort --check ."
+
+format-fix: ./app
+	docker-compose run --rm app sh -c "black . && \
+	  autoflake --in-place --remove-all-unused-imports --remove-unused-variables --quiet --recursive --exclude "migrations" . && \
+	  isort ."
+
+lint: ./app
+	docker-compose run --rm app sh -c "flake8"
 
 network-build: ./Dockerfile
 	docker-compose -f docker-compose.network.yml build

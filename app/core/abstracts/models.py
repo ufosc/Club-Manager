@@ -2,10 +2,10 @@
 Abstract models for common fields.
 """
 
-from typing import Any, ClassVar, Generic, MutableMapping, Optional, Self
-from django.db import models
 import uuid
+from typing import Any, ClassVar, Generic, MutableMapping, Optional, Self
 
+from django.db import models
 
 from utils.types import T
 

@@ -1,4 +1,5 @@
 from typing import Optional, Type
+
 from django import forms
 from django.http import HttpResponse
 from django.test import TestCase
@@ -45,7 +46,7 @@ class ApiTestsBase(TestsBase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
 
-class ViewsTestsBase(ApiTestsBase):
+class ViewTestsBase(ApiTestsBase):
     """Abstract testing utilities for app views."""
 
     def assertRenders(
@@ -90,7 +91,7 @@ class ViewsTestsBase(ApiTestsBase):
         return form
 
 
-class AuthViewsTestsBase(ViewsTestsBase):
+class AuthViewsTestsBase(ViewTestsBase):
     """Abstract testing utilities for app views that require auth."""
 
     def setUp(self):

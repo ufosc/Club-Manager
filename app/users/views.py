@@ -3,9 +3,9 @@ HTML views.
 """
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import BadRequest, ValidationError
 from django.http import HttpRequest
 from django.shortcuts import redirect, render
-from django.core.exceptions import BadRequest, ValidationError
 from rest_framework import status
 
 from clubs.models import Club, Event

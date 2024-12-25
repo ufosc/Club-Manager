@@ -3,14 +3,13 @@ Unit tests for Club business logic.
 """
 
 import datetime
+
 from django.core import exceptions
 from django.utils import timezone
+
 from clubs.models import Club, DayChoice, Event
 from clubs.services import ClubService
-from clubs.tests.utils import (
-    create_test_club,
-    join_club_url,
-)
+from clubs.tests.utils import create_test_club, join_club_url
 from core.abstracts.tests import TestsBase
 from lib.faker import fake
 from users.tests.utils import create_test_user
@@ -125,6 +124,7 @@ class ClubEventTests(TestsBase):
 
         rec = self.service.create_recurring_event(**payload)
         self.assertEqual(Event.objects.count(), EXPECTED_EV_COUNT)
+        self.assertEqual(rec.expected_event_count, EXPECTED_EV_COUNT)
 
         for i, event in enumerate(list(Event.objects.all().order_by("start_at"))):
             self.assertEqual(event.name, rec.name)

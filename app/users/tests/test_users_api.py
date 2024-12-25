@@ -2,13 +2,11 @@
 Tests for the user API.
 """
 
-from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.test import TestCase
 from django.urls import reverse
-
-from rest_framework.test import APIClient
 from rest_framework import status
-
+from rest_framework.test import APIClient
 
 CREATE_USER_URL = reverse("api-users:create")  # user as app, create as endpoint
 TOKEN_URL = reverse("api-users:token")
