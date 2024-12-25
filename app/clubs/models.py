@@ -3,9 +3,7 @@ Club models.
 """
 
 # from datetime import datetime, timedelta
-from pathlib import Path
 from typing import ClassVar, Optional
-from django.core.files import File
 from django.utils import timezone
 from django.utils.timezone import datetime
 
@@ -15,7 +13,6 @@ from django.utils.translation import gettext_lazy as _
 from core.abstracts.models import ManagerBase, ModelBase, UniqueModel
 from users.models import User
 from utils.dates import get_day_count
-from utils.formatting import format_bytes
 from utils.models import UploadFilepathFactory
 
 
@@ -200,61 +197,3 @@ class EventAttendance(ModelBase):
                 name="record_attendance_once_per_member_per_event",
             )
         ]
-
-
-class QRCode(ModelBase):
-    """Store image for QR Codes."""
-
-    qrcode_upload_path = UploadFilepathFactory("clubs/qrcodes/")
-
-    image = models.ImageField(null=True, blank=True, upload_to=qrcode_upload_path)
-    url = models.URLField()
-
-    def save_image(self, filepath: str):
-        """Takes path for image and sets it to the image field."""
-
-        path = Path(filepath)
-
-        with path.open(mode="rb") as f:
-            self.image = File(f, name=f.name)
-            self.save()
-
-    # Dynamic Properties
-    @property
-    def width(self):
-        if self.image:
-            return self.image.width
-
-    @property
-    def size(self):
-        # if self.image is not None and hasattr(self.image, 'size'):
-        if self.image:
-            return format_bytes(self.image.size)
-
-    # Overrides
-    def __str__(self) -> str:
-        return self.url
-
-    class Meta:
-        verbose_name = "QR Code"
-
-
-# class Badge(BaseModel):
-#     """Rewards members get when criteria is met."""
-
-#     club = models.ForeignKey(Club, related_name="badges", on_delete=models.CASCADE)
-
-#     image = models.ImageField()
-#     name = models.CharField(max_length=32)
-
-
-# class PointsBadge(Badge):
-#     """Marks when members reach certain points."""
-
-#     points_required = models.IntegerField()
-
-
-# class AttendanceBadge(Badge):
-#     """Marks when members reach certain points."""
-
-#     points_required = models.IntegerField()

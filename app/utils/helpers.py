@@ -1,3 +1,4 @@
+from django.http import HttpRequest
 from django.urls import reverse
 
 
@@ -27,3 +28,19 @@ def str_to_list(target: str | None):
     items = clean_list([item.strip() for item in items])
 
     return items
+
+
+def get_client_ip(request: HttpRequest) -> str:
+    """
+    Get IP Address from request.
+
+    First checks if the request has an HTTP_X_FORWARDED_FOR header,
+    otherwise it will use the default ip header.
+    """
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(",")[0]
+    else:
+        ip = request.META.get("REMOTE_ADDR")
+
+    return ip

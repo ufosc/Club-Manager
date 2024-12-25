@@ -5,7 +5,7 @@ from rest_framework import status
 from clubs.models import ClubMembership, Event, EventAttendance
 from clubs.services import ClubService
 from clubs.tests.utils import club_home_url, create_test_club, join_club_url
-from core.abstracts.tests import ViewsTestsBase
+from core.abstracts.tests import ViewTestsBase
 from lib.faker import fake
 from users.tests.utils import create_test_user, login_user_url, register_user_url
 
@@ -28,7 +28,7 @@ def event_attendance_done_url(club_id: int, event_id: int):
     )
 
 
-class ClubViewTests(ViewsTestsBase):
+class ClubViewTests(ViewTestsBase):
     """Unit tests for club views."""
 
     def setUp(self):

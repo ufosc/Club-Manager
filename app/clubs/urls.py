@@ -6,6 +6,7 @@ app_name = "clubs"
 
 urlpatterns = [
     path("available/", views.available_clubs_view, name="available"),
+    path("links/<int:link_id>/", views.club_home_view, name="link"),
     path("club/<int:club_id>/", views.club_home_view, name="home"),
     path("club/<int:club_id>/join/", views.join_club_view, name="join"),
     path("club/<int:club_id>/register/", views.join_club_view, name="register"),

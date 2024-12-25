@@ -25,11 +25,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
+from analytics.views import redirect_link_view
 
 from app.settings import DEBUG
 
 urlpatterns = [
     path("", include("core.urls")),
+    path("r/<int:link_id>/", redirect_link_view, name="redirect-link"),
     path("admin/", admin.site.urls),
     path("auth/", include("users.authentication.urls")),
     path("auth/", include("django.contrib.auth.urls")),

@@ -6,6 +6,15 @@ dev: build
 
 test: build
 	docker-compose run --rm app sh -c "python manage.py test"
+	
+format: ./app
+	docker-compose run --rm app sh -c "black --check . && isort --check ."
+
+format-fix: ./app
+	docker-compose run --rm app sh -c "black . && isort ."
+
+lint: ./app
+	docker-compose run --rm app sh -c "flake8"
 
 network-build: ./Dockerfile
 	docker-compose -f docker-compose.network.yml build

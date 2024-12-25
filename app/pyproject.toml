@@ -17,6 +17,9 @@ exclude = '''
 )/
 '''
 
+[tool.isort]
+profile = "black"
+
 # Not supported yet
 # [tool.flake8]
 # max-line-length = 120

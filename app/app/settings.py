@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "core",
     "users",
     "users.authentication",
+    "analytics",
     "clubs",
 ]
 
