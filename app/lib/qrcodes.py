@@ -15,7 +15,9 @@ from utils.files import get_media_dir
 def create_qrcode_image(url: str):
     """Create QR Code image, return file path."""
 
-    img_path = get_media_dir(f"{uuid.uuid4()}-{timezone.now().isoformat()}.png")
+    img_path = get_media_dir(
+        f"{uuid.uuid4()}-{timezone.now().strftime('%d-%m-%Y_%H:%M:%S')}.svg"
+    )
 
     qrcode = segno.make_qr(url)
     qrcode.save(img_path)

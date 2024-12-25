@@ -3,20 +3,15 @@ HTML views.
 """
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import logout_then_login
-from django.http import HttpRequest
-from django.shortcuts import render
 from django.http import HttpRequest
 from django.shortcuts import redirect, render
 from django.core.exceptions import BadRequest, ValidationError
-from django.urls import reverse
 from rest_framework import status
 
 from clubs.models import Club, Event
 from clubs.services import ClubService
-from users.forms import LoginForm, RegisterForm
+from users.forms import RegisterForm
 from users.services import UserService
-from utils.models import get_or_none
 
 
 def register_user_view(request: HttpRequest):
@@ -56,7 +51,10 @@ def register_user_view(request: HttpRequest):
                 club_svc.add_member(user)
                 club_svc.record_member_attendance(user, event)
 
-            return redirect("clubs:available")
+            if "next" in request.GET:
+                return redirect(request.GET.get("next"))
+            else:
+                return redirect("clubs:available")
 
         else:
             context["form"] = form
@@ -72,10 +70,10 @@ def register_user_view(request: HttpRequest):
         event_id = request.GET.get("event", None)
 
         if club_id:
-            initial_data["club"] = get_or_none(Club, id=club_id)
+            initial_data["club"] = Club.objects.find_by_id(int(club_id))
 
         if event_id:
-            initial_data["event"] = get_or_none(Event, id=event_id)
+            initial_data["event"] = Event.objects.find_by_id(int(event_id))
 
         form = RegisterForm(initial=initial_data)
 
@@ -84,37 +82,6 @@ def register_user_view(request: HttpRequest):
 
     context["form"] = form
     return render(request, "users/register-user.html", context)
-
-
-def login_user_view(request: HttpRequest):
-    """Authenticate user's credentials, create user session."""
-    form = LoginForm()
-    context = {}
-
-    if request.POST:
-        form = LoginForm(data=request.POST)
-
-        if form.is_valid():
-            data = form.cleaned_data
-
-            username = data.get("username", None)
-            password = data.get("password", None)
-
-            user = UserService.authenticate_user(
-                request, username_or_email=username, password=password
-            )
-            UserService.login_user(request, user)
-
-            return redirect("users:profile")
-
-    context["form"] = form
-    return render(request, "users/login-user.html", context)
-
-
-@login_required()
-def logout_user_view(request: HttpRequest):
-    """Clear session of current user."""
-    return logout_then_login(request, reverse("users:login"))
 
 
 @login_required()

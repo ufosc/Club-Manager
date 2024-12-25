@@ -19,7 +19,8 @@ class UserProfileInline(admin.StackedInline):
 class UserAdmin(BaseUserAdmin):
     """Manager users in admin dashbaord."""
 
-    readonly_fields = BaseUserAdmin.readonly_fields + (
+    readonly_fields = (
+        *BaseUserAdmin.readonly_fields,
         "date_joined",
         "first_name",
         "last_name",

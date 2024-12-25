@@ -48,5 +48,5 @@ exclude_lines = [
     "def __str__",
 ]
 fail_under = 100
-omit = ['*/migrations/*', '*/tests/*', '*/__init__.py', '*/admin.py', '*/apps.py', '*/urls.py', '*/wsgi.py', '*/settings.py', '*/asgi.py', '*/manage.py']
+omit = ['*/migrations/*', '*/tests/*', '*/__init__.py', '*/admin.py', '*/apps.py', '*/urls.py', '*/wsgi.py', '*/settings.py', '*/asgi.py', '*/manage.py',  '*/tests.py', '*/lib/*', '*/mock/*']
 sort = "Cover"

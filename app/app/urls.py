@@ -23,6 +23,8 @@ from drf_spectacular.views import (
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls.static import static
+from django.conf import settings
 
 from app.settings import DEBUG
 
@@ -40,11 +42,18 @@ urlpatterns = [
     ),
     path("users/", include("users.urls")),
     path("clubs/", include("clubs.urls")),
-    path("api/v1/user/", include("users.api_urls")),
-    path("api/v1/club/", include("clubs.api_urls")),
+    path("api/v1/user/", include("users.apis")),
+    path("api/v1/club/", include("clubs.apis")),
 ]
 
 if DEBUG:
+    from debug_toolbar.toolbar import debug_toolbar_urls
+
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )
+    urlpatterns += debug_toolbar_urls()
     urlpatterns.append(
         path("__reload__/", include("django_browser_reload.urls")),
     )

@@ -9,14 +9,14 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.views import exception_handler
 
-from clubs.services import ClubService
+from clubs.models import Club
 from utils.logging import print_error
 
 
 def index(request):
     """Base view for site."""
     server_time = timezone.now().strftime("%d/%m/%Y, %H:%M:%S")
-    clubs = ClubService.find()
+    clubs = Club.objects.find()
 
     return render(
         request, "core/landing.html", context={"time": server_time, "clubs": clubs}
