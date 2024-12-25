@@ -38,8 +38,8 @@ def create_test_event(
     return Event.objects.create(
         name=name,
         club=club,
-        event_start=event_start,
-        event_end=event_end,
+        start_at=event_start,
+        end_at=event_end,
         location=location,
         description=description,
         **kwargs,

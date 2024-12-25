@@ -41,8 +41,8 @@ class RecurringEventAdmin(admin.ModelAdmin):
 class EventAdmin(admin.ModelAdmin):
     """Admin config for club events."""
 
-    list_display = ["__str__", "id", "location", "event_start", "event_end"]
-    ordering = ["event_start"]
+    list_display = ["__str__", "id", "location", "start_at", "end_at"]
+    ordering = ["start_at"]
 
 
 class QRCodeAdmin(admin.ModelAdmin):

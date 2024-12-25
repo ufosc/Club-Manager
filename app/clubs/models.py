@@ -6,8 +6,7 @@ Club models.
 from pathlib import Path
 from typing import ClassVar, Optional
 from django.core.files import File
-from django.utils import timezone
-from django.utils.timezone import datetime, timedelta
+from django.utils.timezone import datetime
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -27,7 +26,7 @@ class ClubRoles(models.TextChoices):
     MEMBER = "member", _("Member")
 
 
-class DayChoices(models.IntegerChoices):
+class DayChoice(models.IntegerChoices):
     MONDAY = 0, _("Monday")
     TUESDAY = 1, _("Tuesday")
     WEDNESDAY = 2, _("Wednesday")
@@ -98,7 +97,7 @@ class RecurringEvent(EventFields):
         Club, on_delete=models.CASCADE, related_name="recurring_events"
     )
 
-    day = models.IntegerField(choices=DayChoices.choices)
+    day = models.IntegerField(choices=DayChoice.choices)
     event_start_time = models.TimeField(
         null=True, blank=True, help_text="Each event will start at this time"
     )
@@ -120,70 +119,70 @@ class RecurringEvent(EventFields):
     def expected_event_count(self):
         return get_day_count(self.start_date, self.end_date, self.day)
 
-    def sync_events(self):
-        """
-        Sync all events for recurring event template.
+    # def sync_events(self):
+    #     """
+    #     Sync all events for recurring event template.
 
-        Will remove all excess events outside of start/end dates,
-        and will create events if missing on a certain day.
+    #     Will remove all excess events outside of start/end dates,
+    #     and will create events if missing on a certain day.
 
-        Date filter docs:
-        https://docs.djangoproject.com/en/dev/ref/models/querysets/#week-day
-        """
-        event_count = self.expected_event_count + 2  # Buffer before/after
+    #     Date filter docs:
+    #     https://docs.djangoproject.com/en/dev/ref/models/querysets/#week-day
+    #     """
+    #     event_count = self.expected_event_count + 2  # Buffer before/after
 
-        # Remove extra events
-        # Get all dates assigned to recurring,
-        # delete if they don't overlap with the start/end dates
-        range_start = datetime.combine(self.start_date, self.event_start_time)
-        range_end = datetime.combine(self.end_date, self.event_start_time)
+    #     # Remove extra events
+    #     # Get all dates assigned to recurring,
+    #     # delete if they don't overlap with the start/end dates
+    #     range_start = datetime.combine(self.start_date, self.event_start_time)
+    #     range_end = datetime.combine(self.end_date, self.event_start_time)
 
-        # Django filter starts at Sun=1, python starts Mon=0
-        query_day = self.day + 2 if self.day > 0 else 6
+    #     # Django filter starts at Sun=1, python starts Mon=0
+    #     query_day = self.day + 2 if self.day > 0 else 6
 
-        query = self.events.filter(
-            ~models.Q(event_start__date__range=(range_start, range_end))
-            | ~models.Q(event_start__week_day=query_day)
-        )
-        query.delete()
+    #     query = self.events.filter(
+    #         ~models.Q(event_start__date__range=(range_start, range_end))
+    #         | ~models.Q(event_start__week_day=query_day)
+    #     )
+    #     query.delete()
 
-        # Create missing events
-        for i in range(event_count):
-            # Equalize date to monday (0), set to target day, set to target week (i)
-            event_date = (
-                (self.start_date - timedelta(days=self.start_date.weekday()))
-                + timedelta(days=self.day)
-                + timedelta(weeks=i)
-            )
+    #     # Create missing events
+    #     for i in range(event_count):
+    #         # Equalize date to monday (0), set to target day, set to target week (i)
+    #         event_date = (
+    #             (self.start_date - timedelta(days=self.start_date.weekday()))
+    #             + timedelta(days=self.day)
+    #             + timedelta(weeks=i)
+    #         )
 
-            if event_date < self.start_date or event_date > self.end_date:
-                continue
+    #         if event_date < self.start_date or event_date > self.end_date:
+    #             continue
 
-            event_start = datetime.combine(
-                event_date, self.event_start_time, tzinfo=timezone.utc
-            )
-            event_end = datetime.combine(
-                event_date, self.event_end_time, tzinfo=timezone.utc
-            )
+    #         event_start = datetime.combine(
+    #             event_date, self.event_start_time, tzinfo=timezone.utc
+    #         )
+    #         event_end = datetime.combine(
+    #             event_date, self.event_end_time, tzinfo=timezone.utc
+    #         )
 
-            # These fields must all be unique together
-            event, _ = Event.objects.update_or_create(
-                name=self.name,
-                club=self.club,
-                event_start=event_start,
-                event_end=event_end,
-                recurring_event=self,
-            )
+    #         # These fields must all be unique together
+    #         event, _ = Event.objects.update_or_create(
+    #             name=self.name,
+    #             club=self.club,
+    #             event_start=event_start,
+    #             event_end=event_end,
+    #             recurring_event=self,
+    #         )
 
-            # Set other fields
-            event.location = self.location
+    #         # Set other fields
+    #         event.location = self.location
 
-            # Only add description if not exists
-            # Doesn't override custom description for existing events
-            if event.description is None:
-                event.description = self.description
+    #         # Only add description if not exists
+    #         # Doesn't override custom description for existing events
+    #         if event.description is None:
+    #             event.description = self.description
 
-            event.save()
+    #         event.save()
 
 
 class EventManager(ManagerBase["Event"]):
@@ -193,12 +192,12 @@ class EventManager(ManagerBase["Event"]):
         self,
         club: Club,
         name: str,
-        event_start: Optional[datetime] = None,
-        event_end: Optional[datetime] = None,
+        start_at: Optional[datetime] = None,
+        end_at: Optional[datetime] = None,
         **kwargs,
     ):
         return super().create(
-            club=club, name=name, event_start=event_start, event_end=event_end, **kwargs
+            club=club, name=name, start_at=start_at, end_at=end_at, **kwargs
         )
 
 
@@ -212,8 +211,8 @@ class Event(EventFields):
 
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="events")
 
-    event_start = models.DateTimeField(null=True, blank=True)
-    event_end = models.DateTimeField(null=True, blank=True)
+    start_at = models.DateTimeField(null=True, blank=True)
+    end_at = models.DateTimeField(null=True, blank=True)
     recurring_event = models.ForeignKey(
         RecurringEvent,
         on_delete=models.CASCADE,
@@ -227,8 +226,8 @@ class Event(EventFields):
 
     def __str__(self) -> str:
 
-        if self.event_start:
-            return super().__str__() + f' ({self.event_start.strftime("%a %m/%d")})'
+        if self.start_at:
+            return super().__str__() + f' ({self.start_at.strftime("%a %m/%d")})'
 
         return super().__str__()
 
@@ -236,7 +235,7 @@ class Event(EventFields):
 
         constraints = [
             models.UniqueConstraint(
-                fields=("event_start", "event_end", "club", "name"),
+                fields=("start_at", "end_at", "club", "name"),
                 name="unique_event_name_per_timerange_per_club",
             )
         ]

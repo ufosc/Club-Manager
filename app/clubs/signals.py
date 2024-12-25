@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from clubs.models import QRCode, RecurringEvent
+from clubs.services import ClubService
 from lib.qrcodes import create_qrcode_image
 
 
@@ -13,7 +14,7 @@ def on_save_recurring_event(sender, **kwargs):
     if not kwargs.get("created", False):
         return
 
-    recurring_event.sync_events()
+    ClubService.sync_recurring_event(recurring_event)
 
 
 @receiver(post_save, sender=QRCode)
