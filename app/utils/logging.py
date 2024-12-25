@@ -8,7 +8,7 @@ import traceback
 from app.settings import TESTING
 
 
-def print_error():
+def print_error():  # pragma: no cover
     """Log an error with stacktrace that's been handled via try/except."""
     if TESTING:
         return

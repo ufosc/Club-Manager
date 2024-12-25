@@ -124,6 +124,7 @@ class ClubEventTests(TestsBase):
 
         rec = self.service.create_recurring_event(**payload)
         self.assertEqual(Event.objects.count(), EXPECTED_EV_COUNT)
+        self.assertEqual(rec.expected_event_count, EXPECTED_EV_COUNT)
 
         for i, event in enumerate(list(Event.objects.all().order_by("start_at"))):
             self.assertEqual(event.name, rec.name)
