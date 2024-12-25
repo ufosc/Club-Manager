@@ -1,4 +1,5 @@
 from django.http import HttpRequest
+
 from analytics.models import Link, LinkVisit
 from core.abstracts.services import ServiceBase
 from utils.helpers import get_client_ip

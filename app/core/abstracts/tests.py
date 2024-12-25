@@ -1,4 +1,5 @@
 from typing import Optional, Type
+
 from django import forms
 from django.http import HttpResponse
 from django.test import TestCase

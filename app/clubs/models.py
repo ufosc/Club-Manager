@@ -4,10 +4,10 @@ Club models.
 
 # from datetime import datetime, timedelta
 from typing import ClassVar, Optional
-from django.utils import timezone
-from django.utils.timezone import datetime
 
 from django.db import models
+from django.utils import timezone
+from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
 
 from core.abstracts.models import ManagerBase, ModelBase, UniqueModel

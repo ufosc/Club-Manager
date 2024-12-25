@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-
 from clubs.models import Club, ClubMembership, Event, RecurringEvent
 from clubs.services import ClubService
 

@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import ClassVar, Optional
-from django.core.files import File
-from django.urls import reverse
 
+from django.core.files import File
 from django.db import models
+from django.urls import reverse
 
 from core.abstracts.models import ManagerBase, ModelBase
 from utils.formatting import format_bytes

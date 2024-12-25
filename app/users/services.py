@@ -1,7 +1,8 @@
-from django.contrib.auth import login, authenticate
-from django.http import HttpRequest
-from users.models import User
+from django.contrib.auth import authenticate, login
 from django.core.exceptions import ValidationError
+from django.http import HttpRequest
+
+from users.models import User
 
 
 class UserService:

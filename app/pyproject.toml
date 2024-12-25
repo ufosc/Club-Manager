@@ -19,6 +19,7 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
+skip = ['migrations']
 
 # Not supported yet
 # [tool.flake8]

@@ -3,8 +3,8 @@ from random import randint
 
 from django.urls import reverse
 from django.utils import timezone
-from clubs.models import Club, Event
 
+from clubs.models import Club, Event
 
 CLUB_CREATE_PARAMS = {
     "name": "Test Club",

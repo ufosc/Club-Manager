@@ -1,4 +1,5 @@
 from rest_framework import status
+
 from clubs.models import EventAttendance
 from clubs.tests.utils import create_test_club, create_test_event
 from core.abstracts.tests import ViewTestsBase

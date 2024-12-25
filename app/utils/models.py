@@ -3,9 +3,7 @@ import uuid
 
 from django.core import exceptions
 from django.db import models
-from django.db.models.fields.related_descriptors import (
-    ReverseOneToOneDescriptor,
-)
+from django.db.models.fields.related_descriptors import ReverseOneToOneDescriptor
 from django.utils.deconstruct import deconstructible
 from rest_framework.fields import ObjectDoesNotExist
 

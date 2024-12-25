@@ -5,8 +5,8 @@ Reference: https://realpython.com/python-generate-qr-code/
 """
 
 import uuid
-import segno
 
+import segno
 from django.utils import timezone
 
 from utils.files import get_media_dir

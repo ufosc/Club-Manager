@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-from utils.admin import other_info_fields
 from django.utils.translation import gettext_lazy as _
+
+from utils.admin import other_info_fields
 
 
 class QRCodeAdmin(admin.ModelAdmin):

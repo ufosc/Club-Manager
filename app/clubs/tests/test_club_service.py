@@ -3,14 +3,13 @@ Unit tests for Club business logic.
 """
 
 import datetime
+
 from django.core import exceptions
 from django.utils import timezone
+
 from clubs.models import Club, DayChoice, Event
 from clubs.services import ClubService
-from clubs.tests.utils import (
-    create_test_club,
-    join_club_url,
-)
+from clubs.tests.utils import create_test_club, join_club_url
 from core.abstracts.tests import TestsBase
 from lib.faker import fake
 from users.tests.utils import create_test_user

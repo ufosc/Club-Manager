@@ -3,14 +3,11 @@ Views for the user API.
 """
 
 # access base classes/methods django uses to create objects to override them
-from rest_framework import generics, authentication, permissions
+from rest_framework import authentication, generics, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
 
-from users.serializers import (
-    UserSerializer,
-    AuthTokenSerializer,
-)
+from users.serializers import AuthTokenSerializer, UserSerializer
 
 
 class CreateUserView(generics.CreateAPIView):
