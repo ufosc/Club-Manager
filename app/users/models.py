@@ -93,10 +93,16 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
     # Dynamic Properties
     @property
     def first_name(self):
+        if not self.profile:
+            return None
+
         return self.profile.first_name
 
     @property
     def last_name(self):
+        if not self.profile:
+            return None
+
         return self.profile.last_name
 
     def __str__(self):

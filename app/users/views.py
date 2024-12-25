@@ -70,10 +70,10 @@ def register_user_view(request: HttpRequest):
         event_id = request.GET.get("event", None)
 
         if club_id:
-            initial_data["club"] = Club.objects.find_by_id(club_id)
+            initial_data["club"] = Club.objects.find_by_id(int(club_id))
 
         if event_id:
-            initial_data["event"] = Event.objects.find_by_id(event_id)
+            initial_data["event"] = Event.objects.find_by_id(int(event_id))
 
         form = RegisterForm(initial=initial_data)
 

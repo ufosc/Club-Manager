@@ -6,6 +6,7 @@ Club models.
 from pathlib import Path
 from typing import ClassVar, Optional
 from django.core.files import File
+from django.utils import timezone
 from django.utils.timezone import datetime
 
 from django.db import models
@@ -117,72 +118,12 @@ class RecurringEvent(EventFields):
     # Dynamic properties & methods
     @property
     def expected_event_count(self):
-        return get_day_count(self.start_date, self.end_date, self.day)
+        if self.end_date is None:
+            end_date = timezone.now()
+        else:
+            end_date = self.end_date
 
-    # def sync_events(self):
-    #     """
-    #     Sync all events for recurring event template.
-
-    #     Will remove all excess events outside of start/end dates,
-    #     and will create events if missing on a certain day.
-
-    #     Date filter docs:
-    #     https://docs.djangoproject.com/en/dev/ref/models/querysets/#week-day
-    #     """
-    #     event_count = self.expected_event_count + 2  # Buffer before/after
-
-    #     # Remove extra events
-    #     # Get all dates assigned to recurring,
-    #     # delete if they don't overlap with the start/end dates
-    #     range_start = datetime.combine(self.start_date, self.event_start_time)
-    #     range_end = datetime.combine(self.end_date, self.event_start_time)
-
-    #     # Django filter starts at Sun=1, python starts Mon=0
-    #     query_day = self.day + 2 if self.day > 0 else 6
-
-    #     query = self.events.filter(
-    #         ~models.Q(event_start__date__range=(range_start, range_end))
-    #         | ~models.Q(event_start__week_day=query_day)
-    #     )
-    #     query.delete()
-
-    #     # Create missing events
-    #     for i in range(event_count):
-    #         # Equalize date to monday (0), set to target day, set to target week (i)
-    #         event_date = (
-    #             (self.start_date - timedelta(days=self.start_date.weekday()))
-    #             + timedelta(days=self.day)
-    #             + timedelta(weeks=i)
-    #         )
-
-    #         if event_date < self.start_date or event_date > self.end_date:
-    #             continue
-
-    #         event_start = datetime.combine(
-    #             event_date, self.event_start_time, tzinfo=timezone.utc
-    #         )
-    #         event_end = datetime.combine(
-    #             event_date, self.event_end_time, tzinfo=timezone.utc
-    #         )
-
-    #         # These fields must all be unique together
-    #         event, _ = Event.objects.update_or_create(
-    #             name=self.name,
-    #             club=self.club,
-    #             event_start=event_start,
-    #             event_end=event_end,
-    #             recurring_event=self,
-    #         )
-
-    #         # Set other fields
-    #         event.location = self.location
-
-    #         # Only add description if not exists
-    #         # Doesn't override custom description for existing events
-    #         if event.description is None:
-    #             event.description = self.description
-
-    #         event.save()
+        return get_day_count(self.start_date, end_date, self.day)
 
 
 class EventManager(ManagerBase["Event"]):

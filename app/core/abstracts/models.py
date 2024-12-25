@@ -6,7 +6,6 @@ from typing import Any, ClassVar, Generic, MutableMapping, Optional, Self
 from django.db import models
 import uuid
 
-
 from utils.types import T
 
 
@@ -64,9 +63,9 @@ class ManagerBase(models.Manager, Generic[T]):
         """Update model if it exists."""
         obj = self.find_by_id(id=id)
 
-        if obj:
+        if obj is not None:
             self.filter(id=id).update(**kwargs)
-            obj.refresh_from_db(using=self._db)
+            obj.refresh_from_db(using=self._db)  # type: ignore
 
         return obj
 

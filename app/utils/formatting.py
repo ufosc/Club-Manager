@@ -2,8 +2,10 @@
 Global formatting utility functions.
 """
 
+from typing import Optional
 
-def plural_noun(count_target: list | int, singular: str, plural: str = None):
+
+def plural_noun(count_target: list | int, singular: str, plural: Optional[str] = None):
     """Takes a list or number and will return singlar form if 1, plural form otherwise."""
     plural = plural if plural else f"{singular}s"
     count = count_target

@@ -13,17 +13,15 @@ class UserService:
     def register_user(cls, email: str, password: str, first_name=None, last_name=None):
         """Create a new user in the database."""
 
-        user = cls.model.objects.create_user(email=email, password=password)
-        user.profile.first_name = first_name
-        user.profile.last_name = last_name
-        user.profile.save()
+        user = cls.model.objects.create_user(
+            email=email, password=password, first_name=first_name, last_name=last_name
+        )
 
         return user
 
     @classmethod
     def login_user(cls, request: HttpRequest, user: User):
         """Creates a new user session."""
-        request.user = None
 
         return login(request, user)
 
