@@ -6,6 +6,7 @@ from typing import Any, ClassVar, Generic, MutableMapping, Optional, Self
 from django.db import models
 import uuid
 
+
 from utils.types import T
 
 
@@ -48,10 +49,12 @@ class ManagerBase(models.Manager, Generic[T]):
 
     def get(self, *args, **kwargs) -> T:
         """Return object matching query, throw error if not found."""
+
         return super().get(*args, **kwargs)
 
     def get_by_id(self, id: int) -> T:
         """Return object with id, throw error if not found."""
+
         return self.get(id=id)
 
     def get_or_create(
@@ -61,18 +64,22 @@ class ManagerBase(models.Manager, Generic[T]):
 
     def update_one(self, id: int, **kwargs) -> Optional[T]:
         """Update model if it exists."""
-        obj = self.find_by_id(id=id)
 
-        if obj is not None:
-            self.filter(id=id).update(**kwargs)
-            obj.refresh_from_db(using=self._db)  # type: ignore
-
-        return obj
+        self.filter(id=id).update(**kwargs)
+        return self.find_by_id(id)
 
     def update_many(self, query: dict, **kwargs) -> models.QuerySet[T]:
-        """Update models with kwargs if they match query."""
+        """
+        Update models with kwargs if they match query.
+
+        If the updated fields include the query fields, the default functionality
+        would empty out the original query set - making the objects changed unknown.
+        However, this function will rerun the filter with the updated fields, and
+        return the result.
+        """
+
         self.filter(**query).update(**kwargs)
-        return self.filter(**query)
+        return self.filter(**kwargs)
 
     def delete_one(self, id: int) -> Optional[T]:
         """Delete model if exists."""
@@ -83,12 +90,14 @@ class ManagerBase(models.Manager, Generic[T]):
 
         return obj
 
-    def delete_many(self, **kwargs) -> models.QuerySet[T]:
+    def delete_many(self, **kwargs) -> list[T]:
         """Delete models that match query."""
         objs = self.filter(**kwargs)
+        res = list(objs)
+
         objs.delete()
 
-        return objs
+        return res
 
     def update_or_create(
         self, defaults: MutableMapping[str, Any] | None = None, **kwargs
