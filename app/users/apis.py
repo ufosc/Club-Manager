@@ -9,6 +9,7 @@ from users import viewsets
 app_name = "api-users"
 
 urlpatterns = [
+    path("token/", viewsets.RetrieveTokenView.as_view({"get": "retrieve"}), name="token"),
     path("token/", viewsets.CreateTokenView.as_view(), name="token"),
     path("me/", viewsets.ManageUserView.as_view(), name="me"),
     path(
