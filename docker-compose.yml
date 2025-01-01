@@ -32,6 +32,10 @@ services:
       - EMAIL_HOST_PASS=${EMAIL_HOST_PASS}
       - CONSOLE_EMAIL_BACKEND=${CONSOLE_EMAIL_BACKEND:-1}
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+
+      - CSRF_TRUSTED_ORIGINS=http://localhost:8000
+      - CSRF_COOKIE_SECURE=0
+      - SESSION_COOKIE_SECURE=0
     depends_on:
       - postgres
 

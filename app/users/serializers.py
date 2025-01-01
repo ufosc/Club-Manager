@@ -5,6 +5,7 @@ Serializers for the user API View
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.translation import gettext as _  # convention import name
 from rest_framework import serializers
+from rest_framework.authtoken.models import Token
 
 from clubs.models import Club
 
@@ -32,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
         source="club_memberships", many=True, required=False
     )
 
-    class Meta:  # defines what is passed to the serializer
+    class Meta:
         model = get_user_model()
         fields = [
             "id",
@@ -95,3 +96,13 @@ class AuthTokenSerializer(serializers.Serializer):
             )  # returns bad request
         attrs["user"] = user  # add user info to attributes, pass it back
         return attrs
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    """Display user token in API."""
+
+    token = serializers.CharField(source="key")
+
+    class Meta:
+        model = Token
+        fields = ("token",)
