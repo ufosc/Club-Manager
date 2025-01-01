@@ -33,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
         source="club_memberships", many=True, required=False
     )
 
-    class Meta:  # defines what is passed to the serializer
+    class Meta:
         model = get_user_model()
         fields = [
             "id",

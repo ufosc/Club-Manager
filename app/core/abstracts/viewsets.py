@@ -12,7 +12,7 @@ class ViewSetBase(GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class ModelViewSetBase(ModelViewSet, GenericViewSet):
+class ModelViewSetBase(ModelViewSet, ViewSetBase):
     """Base viewset for model CRUD operations."""
 
     pass
