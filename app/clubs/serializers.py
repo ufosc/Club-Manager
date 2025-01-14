@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from clubs.models import Club, ClubMembership
+from core.abstracts.serializers import ModelSerializerBase
 from users.models import User
 
 
@@ -13,20 +14,32 @@ class ClubMemberNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClubMembership
-        fields = ["id", "user_id", "username", "owner", "role", "points"]
+        fields = [
+            *ModelSerializerBase.default_fields,
+            "user_id",
+            "username",
+            "owner",
+            "role",
+            "points",
+        ]
 
 
-class ClubSerializer(serializers.ModelSerializer):
+class ClubSerializer(ModelSerializerBase):
     """Convert club model to JSON fields."""
 
     members = ClubMemberNestedSerializer(many=True, read_only=True)
 
     class Meta:
         model = Club
-        fields = ["id", "name", "logo", "members"]
+        fields = [
+            *ModelSerializerBase.default_fields,
+            "name",
+            "logo",
+            "members",
+        ]
 
 
-class ClubMembershipSerializer(serializers.ModelSerializer):
+class ClubMembershipSerializer(ModelSerializerBase):
     """Represents a club membership to use for CRUD operations."""
 
     user_id = serializers.SlugRelatedField(
@@ -38,4 +51,11 @@ class ClubMembershipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClubMembership
-        fields = ["id", "user_id", "club_id", "role", "owner", "points"]
+        fields = [
+            *ModelSerializerBase.default_fields,
+            "user_id",
+            "club_id",
+            "role",
+            "owner",
+            "points",
+        ]
