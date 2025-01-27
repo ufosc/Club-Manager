@@ -8,12 +8,13 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
 from clubs.models import Club
+from core.abstracts.serializers import ModelSerializerBase
 
 
 class UserClubNestedSerializer(serializers.ModelSerializer):
     """Represents nested club info for users."""
 
-    id = serializers.CharField(source="club.id", read_only=True)
+    id = serializers.IntegerField(source="club.id", read_only=True)
     name = serializers.CharField(source="club.name", read_only=True)
     role = serializers.CharField(read_only=True)
 
@@ -22,7 +23,7 @@ class UserClubNestedSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "role"]
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(ModelSerializerBase):
     """Serialzier for the user object."""
 
     email = serializers.EmailField()
@@ -36,7 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = [
-            "id",
+            *ModelSerializerBase.default_fields,
             "username",
             "email",
             "first_name",

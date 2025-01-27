@@ -37,6 +37,11 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-changeme")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = environ_bool("DEBUG", 0)
+"""Debug mode implements better logging."""
+
+DEV = environ_bool("DEV")
+"""Dev mode installs additional development packages."""
+
 TESTING = sys.argv[1:2] == ["test"]
 NETWORK = os.environ.get("DJANGO_ENV", "dev") == "network"
 
@@ -66,6 +71,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -73,9 +79,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
+# TODO: Add CORS settings
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = "app.urls"
 
@@ -186,8 +193,8 @@ CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
 
 # Prevent csrf and session cookies from being set by JS
-CSRF_COOKIE_HTTPONLY = True
-SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = False
 
 # Only allow cookies from these origins
 CSRF_TRUSTED_ORIGINS = environ_list("CSRF_TRUSTED_ORIGINS")
@@ -227,20 +234,22 @@ EMAIL_USE_TLS = True
 # == Environment Overrides == #
 ###############################
 
-if DEBUG:
+if DEV:
+    INSTALLED_APPS.append("django_browser_reload")
     INSTALLED_APPS.append("debug_toolbar")
     INSTALLED_APPS.append("django_extensions")
 
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
     MIDDLEWARE.append("django_browser_reload.middleware.BrowserReloadMiddleware")
-
     CSRF_TRUSTED_ORIGINS.extend(["http://0.0.0.0"])
+
     INTERNAL_IPS = [
         "127.0.0.1",
     ]
 
-if DEBUG and not NETWORK:
-    INSTALLED_APPS.append("django_browser_reload")
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend(["http://0.0.0.0"])
+
 
 if TESTING:
     INSTALLED_APPS.append("core.mock")

@@ -23,7 +23,7 @@ from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from analytics.views import redirect_link_view
-from app.settings import DEBUG
+from app.settings import DEV
 
 urlpatterns = [
     path("", include("core.urls")),
@@ -44,7 +44,7 @@ urlpatterns = [
     path("api/v1/club/", include("clubs.apis")),
 ]
 
-if DEBUG:
+if DEV:
     from debug_toolbar.toolbar import debug_toolbar_urls
 
     urlpatterns += static(

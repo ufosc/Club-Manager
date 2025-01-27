@@ -7,7 +7,7 @@ class ViewSetBase(GenericViewSet):
 
     authentication_classes = [
         authentication.TokenAuthentication,
-        authentication.SessionAuthentication,
+        # authentication.SessionAuthentication,
     ]
     permission_classes = [permissions.IsAuthenticated]
 
