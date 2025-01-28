@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
+from analytics.models import Link, QRCode
 from utils.admin import other_info_fields
 
 
@@ -24,7 +25,7 @@ class QRCodeAdmin(admin.ModelAdmin):
         ),
         (
             _("Details"),
-            {"fields": ("size", "url")},
+            {"fields": ("size", "link")},
         ),
         other_info_fields,
     )
@@ -38,3 +39,7 @@ class QRCodeAdmin(admin.ModelAdmin):
             f"<image  xlink:href={obj.image.url} width='100%'>"
             "</svg>"
         )
+
+
+admin.site.register(QRCode, QRCodeAdmin)
+admin.site.register(Link)

@@ -42,6 +42,9 @@ debug-test:
 		python /tmp/debugpy --listen 0.0.0.0:5678 manage.py test"
 
 debug: debug-build debug-run
+
+docker-push:
+	docker buildx build --platform=linux/amd64,linux/arm64 -t ikehunter5/club-manager:latest -f ./Dockerfile . --push
 	
 down:
 	docker-compose down --remove-orphans
