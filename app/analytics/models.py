@@ -53,7 +53,7 @@ class Link(ModelBase):
     objects: ClassVar[LinkManager] = LinkManager()
 
     def __str__(self):
-        self.display_name or self.public_url or self.__str__()
+        return self.display_name or self.public_url or super().__str__()
 
 
 class LinkVisitManager(ManagerBase["LinkVisit"]):
@@ -74,7 +74,7 @@ class LinkVisit(ModelBase):
 
     # Overrides
     objects: ClassVar[LinkVisitManager] = LinkVisitManager()
-    
+
     def __str__(self):
         return super().__str__()
 

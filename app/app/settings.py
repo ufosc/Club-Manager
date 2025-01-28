@@ -39,7 +39,7 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-changeme")
 DEBUG = environ_bool("DEBUG", 0)
 """Debug mode implements better logging."""
 
-DEV = environ_bool("DEV")
+DEV = environ_bool("DEV") or os.environ.get("DJANGO_ENV", "") == "dev"
 """Dev mode installs additional development packages."""
 
 TESTING = sys.argv[1:2] == ["test"]
@@ -235,6 +235,8 @@ EMAIL_USE_TLS = True
 ###############################
 
 if DEV:
+    import socket
+
     INSTALLED_APPS.append("django_browser_reload")
     INSTALLED_APPS.append("debug_toolbar")
     INSTALLED_APPS.append("django_extensions")
@@ -245,7 +247,10 @@ if DEV:
 
     INTERNAL_IPS = [
         "127.0.0.1",
+        "10.0.2.2",
     ]
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS += [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
 
 if DEBUG:
     CSRF_TRUSTED_ORIGINS.extend(["http://0.0.0.0"])

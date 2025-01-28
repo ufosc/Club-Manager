@@ -41,5 +41,11 @@ class QRCodeAdmin(admin.ModelAdmin):
         )
 
 
+class LinkAdmin(admin.ModelAdmin):
+    """Display links in admin."""
+
+    list_display = ("__str__", "public_url")
+
+
 admin.site.register(QRCode, QRCodeAdmin)
-admin.site.register(Link)
+admin.site.register(Link, LinkAdmin)
