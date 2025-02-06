@@ -4,6 +4,7 @@ from typing import ClassVar, Optional
 from django.core.files import File
 from django.db import models
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from core.abstracts.models import ManagerBase, ModelBase
 from utils.formatting import format_bytes
@@ -41,21 +42,38 @@ class Link(ModelBase):
     # Dynamic Properties
     @property
     def url_path(self):
-        return reverse("redirect-link", kwargs={"link_id": self.id})
+        # Extended models use link_id
+        return reverse("redirect-link", kwargs={"link_id": self.id or self.link_id})
 
     @property
-    def full_url(self):
+    def tracking_url(self):
         return get_full_url(self.url_path)
 
     @property
     def link_visits(self):
         return self.visits.aggregate(sum=models.Sum("amount")).get("sum", 0)
 
+    def as_html(self, new_tab=True):
+        if new_tab:
+            return mark_safe(
+                f'<a href="{self.tracking_url}" target="_blank">{self.tracking_url}</a>'
+            )
+
+        return mark_safe(f'<a href="{self.tracking_url}">{self.tracking_url}</a>')
+
+    def generate_qrcode(self):
+        """Create QRCode for link."""
+
+        if self.qrcode is not None:
+            return
+
+        QRCode.objects.create(link=self)
+
     # Overrides
     objects: ClassVar[LinkManager] = LinkManager()
 
     def __str__(self):
-        return self.display_name or self.full_url or super().__str__()
+        return self.display_name or self.tracking_url or super().__str__()
 
 
 class LinkVisitManager(ManagerBase["LinkVisit"]):
@@ -126,7 +144,7 @@ class QRCode(ModelBase):
     # Dynamic Properties
     @property
     def url(self):
-        return self.link.full_url
+        return self.link.tracking_url
 
     @property
     def width(self):
@@ -140,7 +158,7 @@ class QRCode(ModelBase):
 
     # Overrides
     def __str__(self) -> str:
-        return self.url or self.__str__()
+        return f'QRCode for "{self.link}"'
 
     class Meta:
         verbose_name = "QR Code"

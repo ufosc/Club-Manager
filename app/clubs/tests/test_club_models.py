@@ -2,8 +2,10 @@
 Unit tests for generic model functions, validation, etc.
 """
 
-from clubs.models import Club
-from clubs.tests.utils import CLUB_CREATE_PARAMS, CLUB_UPDATE_PARAMS
+from django.urls import reverse
+from analytics.models import Link
+from clubs.models import Club, Event
+from clubs.tests.utils import CLUB_CREATE_PARAMS, CLUB_UPDATE_PARAMS, create_test_club
 from core.abstracts.tests import TestsBase
 
 
@@ -51,3 +53,25 @@ class BaseModelTests(TestsBase):
 
         obj_count = self.model.objects.all().count()
         self.assertEqual(obj_count, 0)
+
+
+class ClubEventTests(TestsBase):
+    """Unit tests for club events."""
+
+    def test_create_event_link(self):
+        """Creating an event should createa new event attendance link."""
+
+        self.assertEqual(Link.objects.count(), 0)
+
+        club = create_test_club()
+        event = Event.objects.create(club=club, name="Test Event")
+
+        self.assertEqual(Link.objects.count(), 1)
+        self.assertEqual(event.attendance_links.count(), 1)
+        link = event.attendance_links.first()
+
+        expected_url_path = reverse(
+            "clubs:join-event", kwargs={"club_id": event.club.id, "event_id": event.id}
+        )
+        self.assertEqual(link.url_path, expected_url_path)
+        self.assertEqual(link.reference, "Default")

@@ -34,7 +34,7 @@ def club_home_view(request: HttpRequest, club_id: int):
 def record_attendance_view(request: HttpRequest, club_id: int, event_id: int):
     """Records a club member attended an event."""
     event = get_object_or_404(Event, id=event_id)
-    ClubService(event.club).record_member_attendance(request.user, event)
+    ClubService(event.club).record_event_attendance(request.user, event)
 
     return redirect("clubs:join-event-done", club_id=club_id, event_id=event_id)
 

@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from clubs.models import Club, ClubMembership, Event, RecurringEvent
+from clubs.models import (
+    Club,
+    ClubMembership,
+    Event,
+    EventAttendance,
+    EventAttendanceLink,
+    RecurringEvent,
+)
 from clubs.services import ClubService
 
 
@@ -46,6 +53,29 @@ class RecurringEventAdmin(admin.ModelAdmin):
         return
 
 
+class EventAttendanceInlineAdmin(admin.TabularInline):
+    """List event attendees in event admin."""
+
+    model = EventAttendance
+    extra = 0
+    readonly_fields = ("created_at",)
+
+
+class EventAttendenceLinkInlineAdmin(admin.StackedInline):
+    """List event links in event admin."""
+
+    model = EventAttendanceLink
+    readonly_fields = (
+        "target_url",
+        "club",
+        "tracking_url_link",
+    )
+    extra = 0
+
+    def tracking_url_link(self, obj):
+        return obj.as_html()
+
+
 class EventAdmin(admin.ModelAdmin):
     """Admin config for club events."""
 
@@ -57,6 +87,8 @@ class EventAdmin(admin.ModelAdmin):
         "end_at",
     )
     ordering = ("start_at",)
+
+    inlines = (EventAttendenceLinkInlineAdmin, EventAttendanceInlineAdmin)
 
 
 admin.site.register(Club, ClubAdmin)

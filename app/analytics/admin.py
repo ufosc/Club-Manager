@@ -61,7 +61,7 @@ class LinkAdmin(admin.ModelAdmin):
     inlines = (LinkVisitInlineAdmin,)
 
     def url_link(self, obj):
-        return mark_safe(f'<a href="{obj.full_url}" target="_blank">{obj.full_url}</a>')
+        return mark_safe(f'<a href="{obj.tracking_url}" target="_blank">{obj.tracking_url}</a>')
 
 
 admin.site.register(QRCode, QRCodeAdmin)

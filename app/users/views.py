@@ -49,7 +49,7 @@ def register_user_view(request: HttpRequest):
             if event:
                 club_svc = ClubService(event.club)
                 club_svc.add_member(user)
-                club_svc.record_member_attendance(user, event)
+                club_svc.record_event_attendance(user, event)
 
             if "next" in request.GET:
                 return redirect(request.GET.get("next"))
