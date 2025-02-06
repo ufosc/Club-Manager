@@ -1,5 +1,8 @@
+from urllib.parse import urljoin
 from django.http import HttpRequest
 from django.urls import reverse
+
+from app.settings import BASE_URL
 
 
 def reverse_query(viewname, query=None, **kwargs):
@@ -27,3 +30,9 @@ def get_client_ip(request: HttpRequest) -> str:
         ip = request.META.get("REMOTE_ADDR")
 
     return ip
+
+
+def get_full_url(path: str):
+    """Get full url of a sub path using root domain."""
+
+    return urljoin(BASE_URL, path)

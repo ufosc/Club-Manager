@@ -51,6 +51,8 @@ ALLOWED_HOSTS.extend(
     # filter(None, os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(","))
 )
 
+BASE_URL = os.environ.get("DJANGO_BASE_URL", "")
+
 # Application definition
 
 INSTALLED_APPS = [

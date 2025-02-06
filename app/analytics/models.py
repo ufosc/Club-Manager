@@ -7,6 +7,7 @@ from django.urls import reverse
 
 from core.abstracts.models import ManagerBase, ModelBase
 from utils.formatting import format_bytes
+from utils.helpers import get_full_url
 from utils.models import OneToOneOrNoneField, UploadFilepathFactory
 
 
@@ -31,7 +32,7 @@ class Link(ModelBase):
     )
     target_url = models.CharField()
     display_name = models.CharField(null=True, blank=True)
-    pings = models.IntegerField(default=0)
+    # pings = models.IntegerField(default=0)
 
     # Relationships
     visits: models.QuerySet["LinkVisit"]
@@ -39,21 +40,22 @@ class Link(ModelBase):
 
     # Dynamic Properties
     @property
-    def public_url(self):
+    def url_path(self):
         return reverse("redirect-link", kwargs={"link_id": self.id})
 
-    # @property
-    # def qrcode(self) -> Optional["QRCode"]:
-    #     try:
-    #         return self._qrcode
-    #     except ObjectDoesNotExist:
-    #         return None
+    @property
+    def full_url(self):
+        return get_full_url(self.url_path)
+
+    @property
+    def link_visits(self):
+        return self.visits.aggregate(sum=models.Sum("amount")).get("sum", 0)
 
     # Overrides
     objects: ClassVar[LinkManager] = LinkManager()
 
     def __str__(self):
-        return self.display_name or self.public_url or super().__str__()
+        return self.display_name or self.full_url or super().__str__()
 
 
 class LinkVisitManager(ManagerBase["LinkVisit"]):
@@ -68,9 +70,15 @@ class LinkVisit(ModelBase):
 
     link = models.ForeignKey(Link, on_delete=models.CASCADE, related_name="visits")
     # TODO: stash breadcrumb on browser to prevent VPNs from registering as multiple visits
-    ipaddress = models.GenericIPAddressField()
-    context = models.JSONField(null=True, blank=True)
-    amount = models.IntegerField(default=0)
+    ipaddress = models.GenericIPAddressField(
+        help_text="IP Address of the person that visited the link"
+    )
+    context = models.JSONField(
+        null=True, blank=True, help_text="Extra meta information"
+    )
+    amount = models.IntegerField(
+        default=0, help_text="Number of times this person clicked the link"
+    )
 
     # Overrides
     objects: ClassVar[LinkVisitManager] = LinkVisitManager()
@@ -118,7 +126,7 @@ class QRCode(ModelBase):
     # Dynamic Properties
     @property
     def url(self):
-        return self.link.public_url
+        return self.link.full_url
 
     @property
     def width(self):

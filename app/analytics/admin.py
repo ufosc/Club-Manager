@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
-from analytics.models import Link, QRCode
+from analytics.models import Link, LinkVisit, QRCode
 from utils.admin import other_info_fields
 
 
@@ -41,10 +41,27 @@ class QRCodeAdmin(admin.ModelAdmin):
         )
 
 
+class LinkVisitInlineAdmin(admin.StackedInline):
+    """Display link visits in link admin."""
+
+    model = LinkVisit
+    extra = 0
+
+    def has_add_permission(self, request, *args, **kwargs):
+        return False
+
+    def has_change_permission(self, request, *args, **kwargs):
+        return False
+
+
 class LinkAdmin(admin.ModelAdmin):
     """Display links in admin."""
 
-    list_display = ("__str__", "public_url")
+    list_display = ("__str__", "url_link", "link_visits")
+    inlines = (LinkVisitInlineAdmin,)
+
+    def url_link(self, obj):
+        return mark_safe(f'<a href="{obj.full_url}" target="_blank">{obj.full_url}</a>')
 
 
 admin.site.register(QRCode, QRCodeAdmin)
