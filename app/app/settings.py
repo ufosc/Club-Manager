@@ -46,12 +46,11 @@ TESTING = sys.argv[1:2] == ["test"]
 NETWORK = os.environ.get("DJANGO_ENV", "dev") == "network"
 
 ALLOWED_HOSTS = []
-ALLOWED_HOSTS.extend(
-    environ_list("DJANGO_ALLOWED_HOSTS")
-    # filter(None, os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(","))
-)
+ALLOWED_HOSTS.extend(environ_list("DJANGO_ALLOWED_HOSTS"))
+ALLOWED_HOSTS.extend([os.environ.get("DJANGO_BASE_URL")])
 
 BASE_URL = os.environ.get("DJANGO_BASE_URL", "")
+ALLOWED_HOSTS.extend([BASE_URL])
 
 # Application definition
 
@@ -200,6 +199,7 @@ SESSION_COOKIE_HTTPONLY = False
 
 # Only allow cookies from these origins
 CSRF_TRUSTED_ORIGINS = environ_list("CSRF_TRUSTED_ORIGINS")
+CSRF_TRUSTED_ORIGINS.extend([BASE_URL])
 
 # Only allow cookies to be sent over HTTPS
 CSRF_COOKIE_SECURE = environ_bool("CSRF_COOKIE_SECURE", True)

@@ -26,7 +26,8 @@ services:
       - DJANGO_ALLOWED_HOSTS=*
       - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
       - DJANGO_SUPERUSER_PASS=${DJANGO_SUPERUSER_PASS:-changeme}
-      - DJANGO_BASE_URL=http://localhost:8000
+      - DJANGO_BASE_URL=${DJANGO_BASE_URL:-http://localhost:8000}
+      # - DJANGO_BASE_URL=http://localhost:8000
       - S3_STORAGE_BACKEND=0
       - CREATE_SUPERUSER=1
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-""}

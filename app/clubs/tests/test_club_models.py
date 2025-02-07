@@ -7,6 +7,7 @@ from analytics.models import Link
 from clubs.models import Club, Event
 from clubs.tests.utils import CLUB_CREATE_PARAMS, CLUB_UPDATE_PARAMS, create_test_club
 from core.abstracts.tests import TestsBase
+from utils.helpers import get_full_url
 
 
 class BaseModelTests(TestsBase):
@@ -73,5 +74,6 @@ class ClubEventTests(TestsBase):
         expected_url_path = reverse(
             "clubs:join-event", kwargs={"club_id": event.club.id, "event_id": event.id}
         )
-        self.assertEqual(link.url_path, expected_url_path)
+        expected_url = get_full_url(expected_url_path)
+        self.assertEqual(link.target_url, expected_url)
         self.assertEqual(link.reference, "Default")
