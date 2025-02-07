@@ -2,7 +2,6 @@
 ## Volume Definitions ##
 ########################
 # What volumes exist and how
-
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -25,7 +24,6 @@ spec:
 ## Volume Claims ##
 ###################
 # Who is assigned what volume
-
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
