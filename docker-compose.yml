@@ -14,8 +14,6 @@ services:
              python manage.py migrate &&
              python manage.py init_superuser &&
              python manage.py runserver 0.0.0.0:8000"
-    # env_file:
-    #   - .env
     environment:
       - DJANGO_ENV=dev
       - DB_HOST=osc-dev-db
@@ -27,7 +25,6 @@ services:
       - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
       - DJANGO_SUPERUSER_PASS=${DJANGO_SUPERUSER_PASS:-changeme}
       - DJANGO_BASE_URL=${DJANGO_BASE_URL:-http://localhost:8000}
-      # - DJANGO_BASE_URL=http://localhost:8000
       - S3_STORAGE_BACKEND=0
       - CREATE_SUPERUSER=1
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-""}
