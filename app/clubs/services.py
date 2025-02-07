@@ -55,7 +55,7 @@ class ClubService(ServiceBase[Club]):
 
         member.save()
 
-    def record_member_attendance(self, user: User, event: Event):
+    def record_event_attendance(self, user: User, event: Event):
         """Record user's attendance for event."""
 
         member = self._get_user_membership(user)
@@ -65,7 +65,10 @@ class ClubService(ServiceBase[Club]):
                 f'Event "{event}" does not belong to club {self.obj}.'
             )
 
-        return EventAttendance.objects.create(member=member, event=event)
+        attendence, _ = EventAttendance.objects.get_or_create(
+            member=member, event=event
+        )
+        return attendence
 
     def get_member_attendance(self, user: User):
         """Get event attendance for user, if they are member."""
@@ -120,13 +123,13 @@ class ClubService(ServiceBase[Club]):
             description=description,
         )
 
-    def get_registration_link(self):
+    def get_registration_url(self):
         """Return link to sign up page."""
 
         base_url = reverse("clubs:register")
         return f"{base_url}?club={self.obj.name}"
 
-    def get_attendance_link(self, event: Event):
+    def get_attendance_url(self, event: Event):
         """Visiting this link will register a user for an event."""
 
         return reverse("clubs:join-event", event_id=event.id)

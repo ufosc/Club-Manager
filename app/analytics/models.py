@@ -4,9 +4,11 @@ from typing import ClassVar, Optional
 from django.core.files import File
 from django.db import models
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from core.abstracts.models import ManagerBase, ModelBase
 from utils.formatting import format_bytes
+from utils.helpers import get_full_url
 from utils.models import OneToOneOrNoneField, UploadFilepathFactory
 
 
@@ -31,7 +33,7 @@ class Link(ModelBase):
     )
     target_url = models.CharField()
     display_name = models.CharField(null=True, blank=True)
-    pings = models.IntegerField(default=0)
+    # pings = models.IntegerField(default=0)
 
     # Relationships
     visits: models.QuerySet["LinkVisit"]
@@ -39,21 +41,39 @@ class Link(ModelBase):
 
     # Dynamic Properties
     @property
-    def public_url(self):
-        return reverse("redirect-link", kwargs={"link_id": self.id})
+    def url_path(self):
+        # Extended models use link_id
+        return reverse("redirect-link", kwargs={"link_id": self.id or self.link_id})
 
-    # @property
-    # def qrcode(self) -> Optional["QRCode"]:
-    #     try:
-    #         return self._qrcode
-    #     except ObjectDoesNotExist:
-    #         return None
+    @property
+    def tracking_url(self):
+        return get_full_url(self.url_path)
+
+    @property
+    def link_visits(self):
+        return self.visits.aggregate(sum=models.Sum("amount")).get("sum", 0)
+
+    def as_html(self, new_tab=True):
+        if new_tab:
+            return mark_safe(
+                f'<a href="{self.tracking_url}" target="_blank">{self.tracking_url}</a>'
+            )
+
+        return mark_safe(f'<a href="{self.tracking_url}">{self.tracking_url}</a>')
+
+    def generate_qrcode(self):
+        """Create QRCode for link."""
+
+        if self.qrcode is not None:
+            return
+
+        QRCode.objects.create(link=self)
 
     # Overrides
     objects: ClassVar[LinkManager] = LinkManager()
 
     def __str__(self):
-        return self.display_name or self.public_url or super().__str__()
+        return self.display_name or self.tracking_url or super().__str__()
 
 
 class LinkVisitManager(ManagerBase["LinkVisit"]):
@@ -68,9 +88,15 @@ class LinkVisit(ModelBase):
 
     link = models.ForeignKey(Link, on_delete=models.CASCADE, related_name="visits")
     # TODO: stash breadcrumb on browser to prevent VPNs from registering as multiple visits
-    ipaddress = models.GenericIPAddressField()
-    context = models.JSONField(null=True, blank=True)
-    amount = models.IntegerField(default=0)
+    ipaddress = models.GenericIPAddressField(
+        help_text="IP Address of the person that visited the link"
+    )
+    context = models.JSONField(
+        null=True, blank=True, help_text="Extra meta information"
+    )
+    amount = models.IntegerField(
+        default=0, help_text="Number of times this person clicked the link"
+    )
 
     # Overrides
     objects: ClassVar[LinkVisitManager] = LinkVisitManager()
@@ -118,7 +144,7 @@ class QRCode(ModelBase):
     # Dynamic Properties
     @property
     def url(self):
-        return self.link.public_url
+        return self.link.tracking_url
 
     @property
     def width(self):
@@ -132,7 +158,7 @@ class QRCode(ModelBase):
 
     # Overrides
     def __str__(self) -> str:
-        return self.url or self.__str__()
+        return f'QRCode for "{self.link}"'
 
     class Meta:
         verbose_name = "QR Code"

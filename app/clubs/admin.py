@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from clubs.models import Club, ClubMembership, Event, RecurringEvent
+from clubs.models import (
+    Club,
+    ClubMembership,
+    Event,
+    EventAttendance,
+    EventAttendanceLink,
+    RecurringEvent,
+)
 from clubs.services import ClubService
 
 
@@ -46,6 +53,29 @@ class RecurringEventAdmin(admin.ModelAdmin):
         return
 
 
+class EventAttendanceInlineAdmin(admin.TabularInline):
+    """List event attendees in event admin."""
+
+    model = EventAttendance
+    extra = 0
+    readonly_fields = ("created_at",)
+
+
+class EventAttendenceLinkInlineAdmin(admin.StackedInline):
+    """List event links in event admin."""
+
+    model = EventAttendanceLink
+    readonly_fields = (
+        "target_url",
+        "club",
+        "tracking_url_link",
+    )
+    extra = 0
+
+    def tracking_url_link(self, obj):
+        return obj.as_html()
+
+
 class EventAdmin(admin.ModelAdmin):
     """Admin config for club events."""
 
@@ -58,43 +88,9 @@ class EventAdmin(admin.ModelAdmin):
     )
     ordering = ("start_at",)
 
-
-# class QRCodeAdmin(admin.ModelAdmin):
-#     """Admin config for QR Codes."""
-
-#     readonly_fields = (
-#         "created_at",
-#         "updated_at",
-#         "size",
-#         "preview",
-#     )
-
-#     fieldsets = (
-#         (
-#             None,
-#             {
-#                 "fields": ("preview", "image"),
-#             },
-#         ),
-#         (
-#             _("Details"),
-#             {"fields": ("size", "url")},
-#         ),
-#         other_info_fields,
-#     )
-
-#     def preview(self, obj):
-#         if not obj.image:
-#             return None
-
-#         return mark_safe(
-#             "<svg width='90' height='90' style='background-color:white'>"
-#             f"<image  xlink:href={obj.image.url} width='100%'>"
-#             "</svg>"
-#         )
+    inlines = (EventAttendenceLinkInlineAdmin, EventAttendanceInlineAdmin)
 
 
 admin.site.register(Club, ClubAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(RecurringEvent, RecurringEventAdmin)
-# admin.site.register(QRCode, QRCodeAdmin)

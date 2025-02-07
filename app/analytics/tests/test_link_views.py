@@ -22,7 +22,7 @@ class LinkViewTests(ViewTestsBase):
         link = create_test_link()
 
         # Initial visit
-        res = self.client.get(link.public_url, REMOTE_ADDR=ip1)
+        res = self.client.get(link.tracking_url, REMOTE_ADDR=ip1)
         self.assertRedirects(res, expected_url=link.target_url)
 
         self.assertEqual(link.visits.count(), 1)
@@ -31,7 +31,7 @@ class LinkViewTests(ViewTestsBase):
         self.assertEqual(visit.ipaddress, ip1)
 
         # Subsequent visit, same ip
-        res2 = self.client.get(link.public_url, REMOTE_ADDR=ip1)
+        res2 = self.client.get(link.tracking_url, REMOTE_ADDR=ip1)
         self.assertRedirects(res2, expected_url=link.target_url)
 
         link.refresh_from_db()
@@ -41,7 +41,7 @@ class LinkViewTests(ViewTestsBase):
         self.assertEqual(visit.ipaddress, ip1)
 
         # Subsequent visit, different ip
-        res = self.client.get(link.public_url, REMOTE_ADDR=ip2)
+        res = self.client.get(link.tracking_url, REMOTE_ADDR=ip2)
         self.assertRedirects(res, expected_url=link.target_url)
 
         self.assertEqual(link.visits.count(), 2)

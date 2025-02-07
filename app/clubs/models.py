@@ -6,13 +6,16 @@ Club models.
 from typing import ClassVar, Optional
 
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
 
+from analytics.models import Link
 from core.abstracts.models import ManagerBase, ModelBase, UniqueModel
 from users.models import User
 from utils.dates import get_day_count
+from utils.helpers import get_full_url
 from utils.models import UploadFilepathFactory
 
 
@@ -61,6 +64,9 @@ class ClubMembership(ModelBase):
 
     # TODO: Should this be split to own model? Keep history of point changes?
     points = models.IntegerField(default=0, blank=True)
+
+    def __str__(self):
+        return self.user.__str__()
 
     class Meta:
         # TODO: Edgecase - owner's user is deleted, deleting membership
@@ -132,11 +138,19 @@ class EventManager(ManagerBase["Event"]):
         name: str,
         start_at: Optional[datetime] = None,
         end_at: Optional[datetime] = None,
+        # create_attendance_link=True,
         **kwargs,
     ):
-        return super().create(
+        """Create new event, and attendance link."""
+
+        event = super().create(
             club=club, name=name, start_at=start_at, end_at=end_at, **kwargs
         )
+
+        # if create_attendance_link:
+        #     EventAttendanceLink.objects.create(event=event, reference="Default")
+
+        return event
 
 
 class Event(EventFields):
@@ -158,6 +172,9 @@ class Event(EventFields):
         blank=True,
         related_name="events",
     )
+
+    # Foreign Relationships
+    attendance_links: models.QuerySet["EventAttendanceLink"]
 
     # Overrides
     objects: ClassVar[EventManager] = EventManager()
@@ -195,5 +212,60 @@ class EventAttendance(ModelBase):
             models.UniqueConstraint(
                 fields=("event", "member"),
                 name="record_attendance_once_per_member_per_event",
+            )
+        ]
+
+
+class EventAttendanceLinkManager(ManagerBase["EventAttendanceLink"]):
+    """Manage queries for event links."""
+
+    def create(self, event: Event, reference: str, **kwargs):
+        """Create event attendance link, and QRCode."""
+
+        path = reverse(
+            "clubs:join-event", kwargs={"club_id": event.club.id, "event_id": event.id}
+        )
+        url = get_full_url(path)
+        display_name = kwargs.pop("display_name", f"Join {event} Link")
+
+        return super().create(
+            target_url=url,
+            event=event,
+            club=event.club,
+            display_name=display_name,
+            reference=reference,
+            **kwargs,
+        )
+
+
+class EventAttendanceLink(Link):
+    """
+    Manage links for event attendance.
+
+    Extends Link model via one-to-one relationship, sharing a pk.
+    All fields from link are accessible on this model.
+    """
+
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name="attendance_links"
+    )
+    reference = models.CharField(
+        null=True, blank=True, help_text="Used to differentiate between links"
+    )
+
+    # Overrides
+    objects: ClassVar["EventAttendanceLinkManager"] = EventAttendanceLinkManager()
+
+    def __str__(self):
+        if self.reference:
+            return f"{self.event} Link ({self.reference})"
+        else:
+            return f"{self.event} Link"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("event", "reference"),
+                name="unique_reference_per_event_attendance_link",
             )
         ]
