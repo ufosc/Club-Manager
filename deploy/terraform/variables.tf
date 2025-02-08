@@ -1,5 +1,5 @@
 #############################
-## General
+## MARK: General
 #############################
 variable "prefix" {
   default = "clubs"
@@ -14,7 +14,7 @@ variable "contact" {
 }
 
 #############################
-## Database 
+## MARK: Database 
 #############################
 variable "cluster_db_name" {
   description = "Postgres database name."
@@ -25,4 +25,22 @@ variable "cluster_db_username" {
   description = "Postgres database auth username."
   type        = string
   sensitive   = true
+}
+
+#############################
+## MARK: Club Manager Env
+#############################
+
+variable "clubs_admin_email" {
+  description = "Email used to create initial super user."
+  type        = string
+  sensitive   = true
+  default     = "user@example.com"
+}
+
+variable "clubs_admin_password" {
+  description = "Password for initial super user."
+  type        = string
+  sensitive   = true
+  default     = "changeme"
 }

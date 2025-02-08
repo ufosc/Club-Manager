@@ -5,18 +5,20 @@ resource "random_password" "database_passwords" {
 }
 
 locals {
+  cluster_db_name     = var.cluster_db_name
+  cluster_db_username = var.cluster_db_username
   cluster_db_password = random_password.database_passwords[0].result
 }
 
 
-module "core_database" {
+module "cluster_database" {
   source        = "./modules/rds"
   prefix        = local.prefix
   common_tags   = local.common_tags
   resource_name = "cluster-db"
 
-  db_name                  = var.cluster_db_name
-  db_username              = var.cluster_db_username
+  db_name                  = local.cluster_db_name
+  db_username              = local.cluster_db_username
   db_password              = local.cluster_db_password
   engine_version           = "12.19"
   enable_blue_green_update = true
