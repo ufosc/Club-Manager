@@ -1,5 +1,4 @@
 {
-  "editor.tabSize": 4,
   "python.analysis.typeCheckingMode": "off",
   "python.analysis.autoImportCompletions": true,
   "python.analysis.inlayHints.callArgumentNames": "off",
@@ -29,6 +28,7 @@
     }
   ],
   "[python]": {
+    "editor.tabSize": 4,
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {

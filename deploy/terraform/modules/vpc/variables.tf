@@ -6,6 +6,12 @@ variable "prefix" {
   default     = "default"
 }
 
+variable "common_tags" {
+  description = "Tags to give all associated resources."
+  type        = map(string)
+
+  default = {}
+}
 
 ##############################################
 ## VPC Vars 
@@ -36,15 +42,8 @@ variable "availability_zone_count" {
 }
 
 ##############################################
-## Tags
+## Resource Tags
 ##############################################
-variable "common_tags" {
-  description = "Tags to give all associated resources."
-  type        = map(string)
-
-  default = {}
-}
-
 variable "subnet_tags" {
   description = "Extra tags to add to subnets. Used for kubernetes connection."
   type        = map(string)
