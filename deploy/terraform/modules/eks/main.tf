@@ -6,6 +6,7 @@
 locals {
   common_name = "${var.prefix}-${var.resource_name}"
 }
+data "aws_region" "current" {}
 
 # Cluster Security
 ###########################

@@ -32,7 +32,6 @@ locals {
     Owner       = var.contact
     ManagedBy   = "Terraform"
   }
-  # cluster_name = "${local.prefix}-cluster"
 }
 
 data "aws_region" "current" {}
