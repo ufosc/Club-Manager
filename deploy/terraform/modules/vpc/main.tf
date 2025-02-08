@@ -1,6 +1,6 @@
-###########################
-## Virtual Private Cloud ##
-###########################
+########################################
+## Virtual Private Cloud 
+########################################
 # Inspired by: https://github.com/terraform-aws-modules/terraform-aws-vpc/tree/master
 
 data "aws_availability_zones" "available" {}
