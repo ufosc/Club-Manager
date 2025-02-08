@@ -47,5 +47,13 @@ variable "clubs_namespace" {
   description = "K8s namespace for club manager resources."
   type        = string
   default     = "main"
+}
 
+#############################
+## Cluster & Network
+#############################
+
+variable "domain_name" {
+  description = "Custom domain name to assign to cluster for public access. Must already exist in AWS Route53."
+  type        = string
 }
