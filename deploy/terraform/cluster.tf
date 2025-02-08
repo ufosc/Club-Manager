@@ -1,10 +1,10 @@
 locals {
-  cluster_name      = module.cluster.cluster_name
+  cluster_name      = "${local.prefix}-cluster"
   oidc_provider_url = module.cluster.oidc_provider_url
 }
 
 ##############################################
-## MARK: Main Cluster Config
+## MARK: Main EKS Config
 ##############################################
 module "cluster" {
   source        = "./modules/eks"
@@ -12,6 +12,7 @@ module "cluster" {
   resource_name = "cluster"
   common_tags   = local.common_tags
 
+  cluster_name = local.cluster_name
   scaling_config = {
     desired_size = 2
     max_size     = 2
@@ -156,4 +157,54 @@ resource "aws_eks_addon" "eks_cni_addon" {
   addon_name               = "vpc-cni"
   cluster_name             = local.cluster_name
   service_account_role_arn = module.vpc_cni_sa.iam_role.arn
+}
+
+
+##############################################
+## MARK: Cluster Initialization
+##############################################
+
+data "template_file" "k8s_init_config" {
+  template = file("./templates/eks/eks-k8s-init-script.sh.tpl")
+
+  vars = {
+    cluster_region = data.aws_region.current.name
+    cluster_name   = local.cluster_name
+
+    cluster_main_namespace = var.clubs_namespace
+
+    cluster_secretsmanager_namespace   = module.secrets_manager_sa.service_account.namespace
+    cluster_secretsmanager_sa_name     = module.secrets_manager_sa.service_account.name
+    cluster_secretsmanager_sa_role_arn = module.secrets_manager_sa.iam_role.arn
+
+    external_dns_namespace   = module.external_dns_sa.service_account.namespace
+    external_dns_sa_name     = module.external_dns_sa.service_account.name
+    external_dns_sa_role_arn = module.external_dns_sa.iam_role.arn
+
+    alb_controller_namespace   = module.alb_controller_sa.service_account.namespace
+    alb_controller_sa_name     = module.alb_controller_sa.service_account.name
+    alb_controller_sa_role_arn = module.alb_controller_sa.iam_role.arn
+
+
+  }
+}
+
+# Manually run init script
+# This is done to pass some context from here to k8s
+resource "null_resource" "update_kubeconfig" {
+  provisioner "local-exec" {
+    command = data.template_file.k8s_init_config.rendered
+  }
+
+  depends_on = [
+    module.cluster,
+    module.ebs_csi_sa,
+    module.secrets_manager_sa,
+    module.external_dns_sa,
+    module.vpc_cni_sa
+  ]
+
+  triggers = {
+    script = data.template_file.k8s_init_config.rendered
+  }
 }

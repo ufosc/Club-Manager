@@ -22,6 +22,12 @@ variable "common_tags" {
 ###############################################
 ## Cluster Config 
 ###############################################
+variable "cluster_name" {
+  description = "Name of the cluster. This is can be provided separately to prevent circular dependencies."
+  default     = ""
+
+}
+
 variable "scaling_config" {
   description = "Manage how EKS will scale nodes up or down."
   type = object({

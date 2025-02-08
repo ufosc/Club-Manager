@@ -8,7 +8,22 @@ output "oidc_provider_url" {
   value       = aws_iam_openid_connect_provider.this.url
 }
 
-output "cluster_name" {
+output "id" {
+  description = "Resource aws_eks_cluster id."
+  value       = aws_eks_cluster.this.id
+}
+
+output "name" {
   description = "Identifier for the created EKS cluster."
   value       = aws_eks_cluster.this.name
+}
+
+output "endpoint" {
+  description = "Cluster api endpoint used with helm."
+  value       = aws_eks_cluster.this.endpoint
+}
+
+output "ca_certificate" {
+  description = "Certificate used with helm."
+  value       = base64decode(aws_eks_cluster.this.certificate_authority[0].data)
 }

@@ -8,7 +8,7 @@ locals {
 }
 data "aws_region" "current" {}
 
-# Cluster Security
+# MARK: Cluster Security
 ###########################
 resource "aws_iam_policy" "this_role_policy" {
   name        = "${local.common_name}-role-policy"
@@ -63,10 +63,10 @@ resource "aws_security_group" "this" {
   tags = var.common_tags
 }
 
-# EKS Cluster
+# MARK: EKS Cluster
 ###########################
 resource "aws_eks_cluster" "this" {
-  name     = local.common_name
+  name     = coalesce(var.cluster_name, local.common_name) # Use manual value if provided, or default to derrived name
   role_arn = aws_iam_role.this_role.arn
 
   vpc_config {
@@ -79,7 +79,7 @@ resource "aws_eks_cluster" "this" {
   depends_on = [aws_iam_role_policy_attachment.this_role]
 }
 
-# Node Group Security
+# MARK: Node Group Security
 ###########################
 resource "aws_iam_policy" "this_node_group_role_policy" {
   name        = "${local.common_name}-node-group-role-policy"
@@ -100,7 +100,7 @@ resource "aws_iam_role_policy_attachment" "this_node_group_role" {
   policy_arn = aws_iam_policy.this_node_group_role_policy.arn
 }
 
-# EKS Node Group
+# MARK: EKS Node Group
 ###########################
 resource "aws_eks_node_group" "this_node_group" {
   cluster_name           = aws_eks_cluster.this.name

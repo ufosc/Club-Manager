@@ -35,12 +35,17 @@ variable "clubs_admin_email" {
   description = "Email used to create initial super user."
   type        = string
   sensitive   = true
-  default     = "user@example.com"
 }
 
 variable "clubs_admin_password" {
   description = "Password for initial super user."
   type        = string
   sensitive   = true
-  default     = "changeme"
+}
+
+variable "clubs_namespace" {
+  description = "K8s namespace for club manager resources."
+  type        = string
+  default     = "main"
+
 }

@@ -15,7 +15,7 @@ resource "aws_subnet" "public" {
     tomap({
       Name = "${var.prefix}-public-${each.value}",
     }),
-    var.subnet_tags
+    var.public_subnet_tags
   )
 }
 
@@ -84,7 +84,8 @@ resource "aws_subnet" "private" {
     var.common_tags,
     tomap({
       Name = "${var.prefix}-private-${each.value}",
-    })
+    }),
+    var.private_subnet_tags
   )
 }
 

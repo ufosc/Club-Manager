@@ -44,9 +44,14 @@ variable "availability_zone_count" {
 ##############################################
 ## Resource Tags
 ##############################################
-variable "subnet_tags" {
-  description = "Extra tags to add to subnets. Used for kubernetes connection."
+variable "public_subnet_tags" {
+  description = "Extra tags to add to public subnets."
   type        = map(string)
   default     = {}
+}
 
+variable "private_subnet_tags" {
+  description = "Extra tags to add to private subnets."
+  type        = map(string)
+  default     = {}
 }
