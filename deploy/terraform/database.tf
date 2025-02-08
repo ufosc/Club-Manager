@@ -23,9 +23,8 @@ module "core_database" {
   enable_final_snapshot    = true
   create_from_snapshot     = ""
 
-  vpc_id                  = module.vpc.vpc_id
-  subnet_ids              = [for subnet in module.vpc.private_subnets : subnet.id]
-  ingress_cidr_blocks     = [for subnet in module.vpc.private_subnets : subnet.cidr_block]
-  ingress_security_groups = []
-  # ingress_security_groups = [aws_security_group.eks.id]
+  vpc_id                  = module.network.vpc_id
+  subnet_ids              = local.private_subnet_ids
+  ingress_cidr_blocks     = local.private_subnet_cidr_blocks
+  ingress_security_groups = [module.cluster.security_group.id]
 }

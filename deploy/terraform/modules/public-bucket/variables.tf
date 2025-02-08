@@ -7,7 +7,7 @@ variable "prefix" {
   default     = "default"
 }
 
-variable "name" {
+variable "resource_name" {
   description = "Identify the bucket created, and related resources."
 }
 

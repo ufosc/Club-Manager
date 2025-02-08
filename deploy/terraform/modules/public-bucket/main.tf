@@ -3,7 +3,7 @@
 #############################################
 
 resource "aws_s3_bucket" "this" {
-  bucket_prefix = "${var.prefix}-${var.name}"
+  bucket_prefix = "${var.prefix}-${var.resource_name}"
   force_destroy = true
 
   tags = merge(var.common_tags, tomap({ Type = "public" }))
