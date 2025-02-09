@@ -23,9 +23,15 @@ module "cluster_secrets" {
       s3_storage_bucket_region = data.aws_region.current.name
     })
 
-    core_admin_auth = jsonencode({
+    clubs_admin_auth = jsonencode({
       admin_email    = var.clubs_admin_email
       admin_password = var.clubs_admin_password
+    })
+
+    clubs_security = jsonencode({
+      allowed_hosts        = "*"
+      base_url             = local.base_url
+      csrf_trusted_origins = local.base_url
     })
   }
 }

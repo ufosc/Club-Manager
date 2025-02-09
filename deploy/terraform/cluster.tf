@@ -75,7 +75,7 @@ module "secrets_manager_sa" {
   resource_name = "secrets-manager"
 
   cluster_name              = local.cluster_name
-  service_account_namespace = "cluster"
+  service_account_namespace = "main"
   service_account_name      = "secretsmanager-sa"
 
   oidc_provider_url  = local.oidc_provider_url
