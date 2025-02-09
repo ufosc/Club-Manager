@@ -20,9 +20,18 @@ spec:
         - name: proxy
           image: ikehunter5/club-manager-proxy:latest
           imagePullPolicy: Always
+
+          volumeMounts:
+            - name: club-static
+              mountPath: /vol/static
+
           envFrom:
             - configMapRef:
                 name: proxy-config
+      volumes:
+        - name: club-static
+          persistentVolumeClaim:
+            claimName: club-static-pvc
 
 ##################################
 ## Club Manager Server Workload ##
@@ -46,6 +55,14 @@ spec:
         - name: club-manager
           image: ikehunter5/club-manager:latest
           imagePullPolicy: Always
+
+          securityContext:
+            runAsUser: 1000
+
+          volumeMounts:
+            - name: club-static
+              mountPath: /vol/static
+
           envFrom:
             - configMapRef:
                 name: club-manager-config
@@ -75,7 +92,7 @@ spec:
                 secretKeyRef:
                   name: aws-secrets
                   key: clubs-admin-email
-            - name: DJANGO_SUPERUSER_PASSWORD
+            - name: DJANGO_SUPERUSER_PASS
               valueFrom:
                 secretKeyRef:
                   name: aws-secrets
@@ -89,22 +106,34 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: aws-secrets
-                  key: clubs-static-bucket-region    
+                  key: clubs-static-bucket-region
             - name: DJANGO_ALLOWED_HOSTS
               valueFrom:
                 secretKeyRef:
                   name: aws-secrets
-                  key: clubs-allowed-hosts    
+                  key: clubs-allowed-hosts
             - name: DJANGO_BASE_URL
               valueFrom:
                 secretKeyRef:
                   name: aws-secrets
-                  key: clubs-base-url    
+                  key: clubs-base-url
             - name: CSRF_TRUSTED_ORIGINS
               valueFrom:
                 secretKeyRef:
                   name: aws-secrets
                   key: clubs-csrf-trusted-origins
+      initContainers:
+        - name: create-static
+          image: busybox
+          command:
+            [
+              'sh',
+              '-c',
+              'mkdir -p /vol/static && chown -R 1000:1000 /vol/static && mkdir -p /app && cd /app'
+            ]
+          volumeMounts:
+            - name: club-static
+              mountPath: /vol/static
 
       volumes:
         - name: club-static
