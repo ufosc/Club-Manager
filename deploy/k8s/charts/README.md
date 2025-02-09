@@ -39,3 +39,11 @@ Then move the new chart into the charts directory.
 - **Repo**: bitnami
 - **Repo URI**: oci://registry-1.docker.io/bitnamicharts
 - **Docs**: <https://artifacthub.io/packages/helm/bitnami/redis>
+
+### External Secrets
+
+- **Namespace**: `external-secrets`
+- **Chart**: external-secrets
+- **Repo**: external-secrets
+- **Repo URI**: <https://charts.external-secrets.io>
+- **Docs**: <https://external-secrets.io/latest/introduction/getting-started/>

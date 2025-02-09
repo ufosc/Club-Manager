@@ -23,13 +23,8 @@ metadata:
 data:
   PORT: '9000'
   DJANGO_ENV: 'production'
-  DB_HOST: 'postgres-postgresql.postgres.svc.cluster.local'
-  DB_USER: 'testuser'
-  DB_PASS: 'testpass'
-  DB_NAME: 'testdb'
   DEBUG: '1'
-  DJANGO_ALLOWED_HOSTS: '*'
   S3_STORAGE_BACKEND: '0'
   CREATE_SUPERUSER: '1'
-  DJANGO_SUPERUSER_EMAIL: 'admin@example.com'
-  DJANGO_SUPERUSER_PASS: 'changeme'
+  
+  
