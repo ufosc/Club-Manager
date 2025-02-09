@@ -9,6 +9,7 @@ metadata:
   name: proxy-config
   namespace: main
 data:
+  DNS_RESOLVER: kube-dns.kube-system.svc.cluster.local
   CLUB_MANAGER_URI: 'club-service:9000'
 
 ---

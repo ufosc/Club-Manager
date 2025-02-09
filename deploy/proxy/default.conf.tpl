@@ -1,5 +1,6 @@
 server {
   listen 8080;
+  resolver "$DNS_RESOLVER" valid=5s;
   
   location /static {
     alias /vol/static;
