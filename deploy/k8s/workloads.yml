@@ -18,7 +18,8 @@ spec:
     spec:
       containers:
         - name: proxy
-          image: ikehunter5/jukebox-proxy:latest
+          image: ikehunter5/club-manager-proxy:latest
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: proxy-config

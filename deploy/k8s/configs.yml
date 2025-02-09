@@ -9,10 +9,7 @@ metadata:
   name: proxy-config
   namespace: main
 data:
-  SERVER_URI: 'jukebox-service:9000'
   CLUB_MANAGER_URI: 'club-service:9000'
-  WEBSOCKET_URI: 'jukebox-service:9000'
-  PUBLIC_STATIC_URI: 'jukebox-client-631bab280a434e28995fd3fcafd1fa5a.s3-website-us-east-1.amazonaws.com'
 
 ---
 apiVersion: v1
@@ -26,5 +23,3 @@ data:
   DEBUG: '1'
   S3_STORAGE_BACKEND: '0'
   CREATE_SUPERUSER: '1'
-  
-  
