@@ -19,10 +19,9 @@ jobs:
           username: ${{ secrets.DOCKER_REGISTRY_USER }}
           password: ${{ secrets.DOCKER_REGISTRY_PASS }}
 
-      - name: Push Clubs Image
+      - name: Build and push images
         run: |
-          make docker-push-clubs
+          docker buildx create --use
 
-      - name: Push Clubs Image
-        run: |
+          make docker-push-clubs
           make docker-push-proxy
