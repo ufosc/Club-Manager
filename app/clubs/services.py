@@ -58,7 +58,8 @@ class ClubService(ServiceBase[Club]):
     def record_event_attendance(self, user: User, event: Event):
         """Record user's attendance for event."""
 
-        member = self._get_user_membership(user)
+        # member = self._get_user_membership(user)
+        member, _ = ClubMembership.objects.get_or_create(user=user, club=event.club)
 
         if event.club.id != self.obj.id:
             raise exceptions.BadRequest(
