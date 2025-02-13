@@ -12,5 +12,5 @@ sendgrid>=6.11.0,<6.12
 segno>=1.6.1,<1.7
 
 # Not required for local dev
-psycopg2>=2.9.3,<2.9.5 # 2.9.10 raises pip error, 2/13/25
-uwsgi>=2.0.20,<2.0.25 # 2.0.28 raises pip error, 2/13/25
+psycopg2>=2.9.4,<2.9.5 # 2.9.10 raises pip error, 2/13/25
+uwsgi>=2.0.27,<2.0.28 # 2.0.28 raises pip error, 2/13/25
