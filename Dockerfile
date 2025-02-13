@@ -15,7 +15,7 @@ RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
     apt-get update && \
     apt install -f && \
-    apt-get install -y --no-install-recommends libpq-dev gcc g++
+    apt-get install -y --no-install-recommends libpq-dev gcc g++ postgresql
 
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt

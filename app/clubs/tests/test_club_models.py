@@ -3,6 +3,7 @@ Unit tests for generic model functions, validation, etc.
 """
 
 from django.urls import reverse
+
 from analytics.models import Link
 from clubs.models import Club, Event
 from clubs.tests.utils import CLUB_CREATE_PARAMS, CLUB_UPDATE_PARAMS, create_test_club

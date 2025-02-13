@@ -1,4 +1,5 @@
 from urllib.parse import urljoin
+
 from django.http import HttpRequest
 from django.urls import reverse
 
