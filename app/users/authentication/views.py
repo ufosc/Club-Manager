@@ -21,7 +21,7 @@ class AuthLoginView(LoginView):
 
     redirect_authenticated_user = True
     template_name = "users/login-user.html"
-    
+
     def get_context_data(self, **kwargs):
         kwargs["next"] = self.request.GET.get("next", None)
         return super().get_context_data(**kwargs)
