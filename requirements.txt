@@ -1,5 +1,5 @@
 Django>=4.2.7,<4.3
-djangorestframework>=3.14.0,<3.15
+djangorestframework>=3.14.0,<3.16
 drf-spectacular>=0.27.1,<0.28
 requests>=2.31.0,<2.33
 django-cors-headers>=3.13.0,<3.14
