@@ -14,7 +14,7 @@ RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
     apt-get update && \
     apt install -f && \
-    apt-get install -y --no-install-recommends libpq-dev gcc g++ && \
+    apt-get install -y --no-install-recommends --fix-missing libpq-dev gcc g++ build-essential && \
     if [ $DEV = "true" ]; \
         then apt-get install -y --no-install-recommends postgresql ; \
     fi
