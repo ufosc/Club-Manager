@@ -121,3 +121,16 @@ class ClubTeamTests(TestsBase):
 
         with self.assertRaises(IntegrityError):
             Team.objects.create(name="Example Team", club=club)
+
+    def test_no_dup_users_per_club(self):
+        """Should raise error if user is assigned multiple memberships to the same team."""
+
+        club = create_test_club()
+        user = create_test_user()
+        team = Team.objects.create(name="Example Team", club=club)
+
+        ClubMembership.objects.create(club=club, user=user)
+        TeamMembership.objects.create(team=team, user=user)
+
+        with self.assertRaises(IntegrityError):
+            TeamMembership.objects.create(team=team, user=user)

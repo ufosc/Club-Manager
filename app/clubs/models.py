@@ -114,6 +114,14 @@ class TeamMembership(ModelBase):
         User, on_delete=models.CASCADE, related_name="team_memberships"
     )
 
+    # Overrides
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="user_single_team_membership", fields=("user", "team")
+            )
+        ]
+
     def clean(self):
         """Run model validation."""
 
