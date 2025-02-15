@@ -7,9 +7,12 @@ from clubs.services import ClubService
 
 @receiver(post_save, sender=RecurringEvent)
 def on_save_recurring_event(sender, **kwargs):
+    """Automations to run when a recurring event is saved."""
+
     recurring_event = kwargs.get("instance", None)
 
     if not kwargs.get("created", False):
+        # Proceed if model is being saved for first time
         return
 
     ClubService.sync_recurring_event(recurring_event)
@@ -17,6 +20,7 @@ def on_save_recurring_event(sender, **kwargs):
 
 @receiver(post_save, sender=Event)
 def on_save_event(sender, instance: Event, **kwargs):
+    """Automations to run when event is saved."""
 
     if kwargs.get("created", False):
         # Only run when event is created

@@ -50,6 +50,10 @@ class Club(UniqueModel):
     memberships: models.QuerySet["ClubMembership"]
     teams: models.QuerySet["Team"]
 
+    # Overrides
+    class Meta:
+        permissions = [("preview_club", "Can view a set of limited fields for a club.")]
+
 
 class ClubMembership(ModelBase):
     """Connection between user and club."""
@@ -67,8 +71,8 @@ class ClubMembership(ModelBase):
     # TODO: Should this be split to own model? Keep history of point changes?
     points = models.IntegerField(default=0, blank=True)
 
-    # # Foreign Relationships
-    # teams: models.QuerySet["Team"]
+    # Foreign Relationships
+    teams: models.QuerySet["Team"]
 
     def __str__(self):
         return self.user.__str__()
