@@ -5,6 +5,7 @@ Club models.
 # from datetime import datetime, timedelta
 from typing import ClassVar, Optional
 
+from django.core import exceptions
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -47,6 +48,7 @@ class Club(UniqueModel):
 
     # Relationships
     memberships: models.QuerySet["ClubMembership"]
+    teams: models.QuerySet["Team"]
 
 
 class ClubMembership(ModelBase):
@@ -65,6 +67,9 @@ class ClubMembership(ModelBase):
     # TODO: Should this be split to own model? Keep history of point changes?
     points = models.IntegerField(default=0, blank=True)
 
+    # # Foreign Relationships
+    # teams: models.QuerySet["Team"]
+
     def __str__(self):
         return self.user.__str__()
 
@@ -80,6 +85,44 @@ class ClubMembership(ModelBase):
                 name="only_one_owner_per_club",
             )
         ]
+
+
+class Team(ModelBase):
+    """Smaller groups within clubs."""
+
+    name = models.CharField(max_length=64)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="teams")
+    points = models.IntegerField(default=0, blank=True)
+
+    # Foreign Relationships
+    memberships: models.QuerySet["TeamMembership"]
+
+    # Overrides
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="unique_team_per_club", fields=("club", "name")
+            )
+        ]
+
+
+class TeamMembership(ModelBase):
+    """Manage club member's assignment to a team."""
+
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="memberships")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="team_memberships"
+    )
+
+    def clean(self):
+        """Run model validation."""
+
+        if not self.user.club_memberships.filter(club__id=self.team.club.id).exists():
+            raise exceptions.ValidationError(
+                f"User must be a member of club {self.team.club} to join team {self.team}."
+            )
+
+        return super().clean()
 
 
 class EventFields(ModelBase):

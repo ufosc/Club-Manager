@@ -2,12 +2,15 @@
 Unit tests for generic model functions, validation, etc.
 """
 
+from django.core import exceptions
+from django.db import IntegrityError
 from django.urls import reverse
 
 from analytics.models import Link
-from clubs.models import Club, Event
+from clubs.models import Club, ClubMembership, Event, Team, TeamMembership
 from clubs.tests.utils import CLUB_CREATE_PARAMS, CLUB_UPDATE_PARAMS, create_test_club
 from core.abstracts.tests import TestsBase
+from users.tests.utils import create_test_user
 from utils.helpers import get_full_url
 
 
@@ -78,3 +81,43 @@ class ClubEventTests(TestsBase):
         expected_url = get_full_url(expected_url_path)
         self.assertEqual(link.target_url, expected_url)
         self.assertEqual(link.reference, "Default")
+
+
+class ClubTeamTests(TestsBase):
+    """Unit tests for teams."""
+
+    def test_assign_user_teams(self):
+        """Should be able to add club members to a team."""
+
+        club = create_test_club()
+        user = create_test_user()
+
+        ClubMembership.objects.create(club=club, user=user)
+
+        team = Team.objects.create(name="Example Team", club=club)
+        TeamMembership.objects.create(team=team, user=user)
+
+        self.assertEqual(club.teams.count(), 1)
+        self.assertEqual(user.team_memberships.count(), 1)
+        self.assertEqual(user.team_memberships.first().team.id, team.id)
+
+    def test_team_user_must_club_member(self):
+        """User can only be assigned to a team if they are a member of that club."""
+
+        club = create_test_club()
+        user = create_test_user()
+
+        team = Team.objects.create(name="Example Team", club=club)
+
+        with self.assertRaises(exceptions.ValidationError):
+            TeamMembership.objects.create(team=team, user=user).save()
+
+    def test_unique_team_per_club(self):
+        """Should not allow duplicate team names per club."""
+
+        club = create_test_club()
+
+        Team.objects.create(name="Example Team", club=club)
+
+        with self.assertRaises(IntegrityError):
+            Team.objects.create(name="Example Team", club=club)
