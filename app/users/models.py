@@ -87,9 +87,10 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
 
     objects: ClassVar[UserManager] = UserManager()
 
-    # Relationships
+    # Foreign Relationships
     profile: Optional["Profile"]
     club_memberships: models.QuerySet
+    team_memberships: models.QuerySet
 
     # Dynamic Properties
     @property

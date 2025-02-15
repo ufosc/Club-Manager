@@ -130,6 +130,12 @@ class ModelBase(models.Model):
 
         return super().__str__()
 
+    def save(self, *args, **kwargs):
+        model = super().save(*args, **kwargs)
+        self.full_clean()
+
+        return model
+
     class Meta:
         abstract = True
 

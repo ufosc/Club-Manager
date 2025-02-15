@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from clubs.forms import TeamMembershipForm
 from clubs.models import (
     Club,
     ClubMembership,
@@ -7,6 +8,8 @@ from clubs.models import (
     EventAttendance,
     EventAttendanceLink,
     RecurringEvent,
+    Team,
+    TeamMembership,
 )
 from clubs.services import ClubService
 
@@ -91,6 +94,31 @@ class EventAdmin(admin.ModelAdmin):
     inlines = (EventAttendenceLinkInlineAdmin, EventAttendanceInlineAdmin)
 
 
+class TeamMembershipInlineAdmin(admin.TabularInline):
+    """Manage user assignments to a team."""
+
+    model = TeamMembership
+    extra = 1
+    form = TeamMembershipForm
+
+    def get_formset(self, request, obj=None, **kwargs):
+        if obj:
+            self.form.parent_model = obj
+        return super().get_formset(request, obj, **kwargs)
+
+
+class TeamAdmin(admin.ModelAdmin):
+    """Manage club teams in admin dashboard."""
+
+    list_display = (
+        "__str__",
+        "club",
+        "points",
+    )
+    inlines = (TeamMembershipInlineAdmin,)
+
+
 admin.site.register(Club, ClubAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(RecurringEvent, RecurringEventAdmin)
+admin.site.register(Team, TeamAdmin)
