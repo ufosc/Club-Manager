@@ -35,6 +35,16 @@ class ClubAdmin(admin.ModelAdmin):
     def members_count(self, obj):
         return obj.memberships.count()
 
+    def get_queryset(self, request):
+        user_club_ids = request.user.club_memberships.all().values_list("club__id")
+
+        queryset = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return queryset
+
+        return queryset.filter(id__in=user_club_ids)
+
 
 class RecurringEventAdmin(admin.ModelAdmin):
 
