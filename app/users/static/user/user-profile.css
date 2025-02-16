@@ -1,9 +1,8 @@
 /* Container Styling */
 
-.profile-container.edit-mode input {
-  border-radius: 4px;
+.hidden {
+  display: none;
 }
-
 
 .profile-container.edit-mode {
   background-color: #fff3cd;
