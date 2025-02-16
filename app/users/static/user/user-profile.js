@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     editButton.addEventListener('click', () => {
         if (editButton.innerText === 'Edit') {
-            // Enter edit mode: Replace each span.field-value with an input.
+            // Enters edit mode, replaces each span field with an input field
             profileItems.forEach(item => {
                 const span = item.querySelector('.field-value');
                 if (span) {
@@ -13,25 +13,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     const value = span.innerText;
                     const input = document.createElement('input');
                     
-                    // If the label includes "birthday", use input type "date"
+                    // If the label is "birthday", the input field is in the date form
                     if (label.toLowerCase().includes('birthday')) {
                         input.type = 'date';
-                        // Make sure the value is in YYYY-MM-DD format.
                         input.value = value;
                     } else {
                         input.type = 'text';
                         input.value = value;
                     }
-                    // Store the label (or field key) for later use
+                    // Temporarily store the field label in the input for data retrieval
                     input.setAttribute('data-label', label.toLowerCase());
                     
-                    // Replace the span with the input
+                    // Replaces the span with the new input field
                     item.replaceChild(input, span);
                 }
             });
             editButton.innerText = 'Save';
         } else if (editButton.innerText === 'Save') {
-            // Save mode: Replace each input with a new span.
+            // Activate Save mode, replaces the data with the input
             const updatedData = {};
             profileItems.forEach(item => {
                 const input = item.querySelector('input');
@@ -43,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     span.className = 'field-value';
                     span.innerText = input.value;
                     
-                    // Replace the input with the new span
                     item.replaceChild(span, input);
                 }
             });
