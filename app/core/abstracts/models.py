@@ -6,6 +6,7 @@ import uuid
 from typing import Any, ClassVar, Generic, MutableMapping, Optional, Self
 
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
 
 from utils.types import T
 
@@ -135,6 +136,15 @@ class ModelBase(models.Model):
         self.full_clean()
 
         return model
+
+    @classmethod
+    def get_content_type(cls):
+        """
+        Get ContentType object representing the model.
+
+        This is a shorthand for: ``ContentType.objects.get_for_model(model)``
+        """
+        return ContentType.objects.get_for_model(cls)
 
     class Meta:
         abstract = True

@@ -1,28 +1,47 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from clubs.models import Event, EventAttendanceLink, RecurringEvent
+from clubs.consts import INITIAL_CLUB_ROLES
+from clubs.models import Club, ClubRole, Event, EventAttendanceLink, RecurringEvent
 from clubs.services import ClubService
 
 
 @receiver(post_save, sender=RecurringEvent)
-def on_save_recurring_event(sender, **kwargs):
+def on_save_recurring_event(sender, instance: RecurringEvent, created=False, **kwargs):
     """Automations to run when a recurring event is saved."""
 
-    recurring_event = kwargs.get("instance", None)
-
-    if not kwargs.get("created", False):
-        # Proceed if model is being saved for first time
+    if not created:
+        # Only proceed if model is being saved for first time
         return
 
-    ClubService.sync_recurring_event(recurring_event)
+    ClubService.sync_recurring_event(instance)
 
 
 @receiver(post_save, sender=Event)
-def on_save_event(sender, instance: Event, **kwargs):
+def on_save_event(sender, instance: Event, created=False, **kwargs):
     """Automations to run when event is saved."""
 
-    if kwargs.get("created", False):
-        # Only run when event is created
-        link = EventAttendanceLink.objects.create(event=instance, reference="Default")
-        link.generate_qrcode()
+    if not created:
+        # Only proceed if event is being created
+        return
+
+    link = EventAttendanceLink.objects.create(event=instance, reference="Default")
+    link.generate_qrcode()
+
+
+@receiver(post_save, sender=Club)
+def on_save_club(sender, instance: Club, created=False, **kwargs):
+    """Automations to run when a club is created."""
+
+    if not created:
+        # Only proceed if club is being created
+        return
+
+    # Create roles after club creation
+    for role in INITIAL_CLUB_ROLES:
+        ClubRole.objects.create(
+            club=instance,
+            role_name=role["role_name"],
+            default=role["default"],
+            perm_labels=role["permissions"],
+        )

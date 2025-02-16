@@ -107,6 +107,7 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
 
         return self.profile.last_name
 
+    # Overrides
     def __str__(self):
         return self.username
 

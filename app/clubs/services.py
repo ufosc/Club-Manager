@@ -8,6 +8,7 @@ from django.urls import reverse
 from clubs.models import (
     Club,
     ClubMembership,
+    ClubRole,
     DayChoice,
     Event,
     EventAttendance,
@@ -34,10 +35,10 @@ class ClubService(ServiceBase[Club]):
 
         return reverse("clubs:join", kwargs={"club_id": self.obj.id})
 
-    def add_member(self, user: User):
+    def add_member(self, user: User, roles: Optional[list[ClubRole]] = None):
         """Create membership for pre-existing user."""
 
-        return ClubMembership.objects.create(club=self.obj, user=user)
+        return ClubMembership.objects.create(club=self.obj, user=user, roles=roles)
 
     def increase_member_points(self, user: User, amount: int = 1):
         """Give the user more coins."""
