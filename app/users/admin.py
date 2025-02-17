@@ -41,8 +41,6 @@ class UserAdmin(BaseUserAdmin):
     readonly_fields = (
         *BaseUserAdmin.readonly_fields,
         "date_joined",
-        # "first_name",
-        # "last_name",
     )
 
     fieldsets = (
@@ -72,11 +70,7 @@ class UserAdmin(BaseUserAdmin):
         ),
     )
 
-    # exclude = ("first_name", "last_name")
     inlines = (UserProfileInline,)
-    # form = UpdateUserForm
-    # add_form = CreateUserForm
 
 
-# admin.site.unregister(UserModel)
 admin.site.register(User, UserAdmin)

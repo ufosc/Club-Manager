@@ -19,7 +19,7 @@ class ClubMembershipInlineAdmin(admin.StackedInline):
     """Create club memberships in admin."""
 
     model = ClubMembership
-    extra = 1
+    extra = 0
 
 
 class ClubRoleInlineAdmin(admin.StackedInline):
@@ -27,7 +27,6 @@ class ClubRoleInlineAdmin(admin.StackedInline):
 
     model = ClubRole
     extra = 0
-    exclude = ("name",)
 
 
 class ClubAdmin(admin.ModelAdmin):
