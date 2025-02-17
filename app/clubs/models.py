@@ -3,27 +3,32 @@ Club models.
 """
 
 # from datetime import datetime, timedelta
-from django.utils import timezone
-from django.utils.timezone import datetime, timedelta
+from typing import ClassVar, Optional
 
+from django.core import exceptions
 from django.db import models
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
 
-from core.abstracts.models import BaseModel, UniqueModel
+from analytics.models import Link
+from core.abstracts.models import ManagerBase, ModelBase, UniqueModel
 from users.models import User
 from utils.dates import get_day_count
+from utils.helpers import get_full_url
 from utils.models import UploadFilepathFactory
 
 
 # TODO: Implement RBAC, custom roles
-# Ref: https://medium.com/@subhamx/role-based-access-control-in-django-the-right-features-to-the-right-users-9e93feb8a3b1
+# Ref: https://medium.com/@subhamx/role-based-access-control-in-django-the-right-features-to-the-right-users-9e93feb8a3b1 # noqa: E501
 class ClubRoles(models.TextChoices):
     PRESIDENT = "president", _("President")
     OFFICER = "officer", _("Officer")
     MEMBER = "member", _("Member")
 
 
-class DayChoices(models.IntegerChoices):
+class DayChoice(models.IntegerChoices):
     MONDAY = 0, _("Monday")
     TUESDAY = 1, _("Tuesday")
     WEDNESDAY = 2, _("Wednesday")
@@ -43,9 +48,10 @@ class Club(UniqueModel):
 
     # Relationships
     memberships: models.QuerySet["ClubMembership"]
+    teams: models.QuerySet["Team"]
 
 
-class ClubMembership(BaseModel):
+class ClubMembership(ModelBase):
     """Connection between user and club."""
 
     club = models.ForeignKey(Club, related_name="memberships", on_delete=models.CASCADE)
@@ -61,6 +67,12 @@ class ClubMembership(BaseModel):
     # TODO: Should this be split to own model? Keep history of point changes?
     points = models.IntegerField(default=0, blank=True)
 
+    # # Foreign Relationships
+    # teams: models.QuerySet["Team"]
+
+    def __str__(self):
+        return self.user.__str__()
+
     class Meta:
         # TODO: Edgecase - owner's user is deleted, deleting membership
         constraints = [
@@ -75,7 +87,53 @@ class ClubMembership(BaseModel):
         ]
 
 
-class EventFields(BaseModel):
+class Team(ModelBase):
+    """Smaller groups within clubs."""
+
+    name = models.CharField(max_length=64)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="teams")
+    points = models.IntegerField(default=0, blank=True)
+
+    # Foreign Relationships
+    memberships: models.QuerySet["TeamMembership"]
+
+    # Overrides
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="unique_team_per_club", fields=("club", "name")
+            )
+        ]
+
+
+class TeamMembership(ModelBase):
+    """Manage club member's assignment to a team."""
+
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="memberships")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="team_memberships"
+    )
+
+    # Overrides
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="user_single_team_membership", fields=("user", "team")
+            )
+        ]
+
+    def clean(self):
+        """Run model validation."""
+
+        if not self.user.club_memberships.filter(club__id=self.team.club.id).exists():
+            raise exceptions.ValidationError(
+                f"User must be a member of club {self.team.club} to join team {self.team}."
+            )
+
+        return super().clean()
+
+
+class EventFields(ModelBase):
     """Common fields for club event models."""
 
     name = models.CharField(max_length=128)
@@ -94,7 +152,7 @@ class RecurringEvent(EventFields):
         Club, on_delete=models.CASCADE, related_name="recurring_events"
     )
 
-    day = models.IntegerField(choices=DayChoices.choices)
+    day = models.IntegerField(choices=DayChoice.choices)
     event_start_time = models.TimeField(
         null=True, blank=True, help_text="Each event will start at this time"
     )
@@ -114,72 +172,36 @@ class RecurringEvent(EventFields):
     # Dynamic properties & methods
     @property
     def expected_event_count(self):
-        return get_day_count(self.start_date, self.end_date, self.day)
+        if self.end_date is None:
+            end_date = timezone.now()
+        else:
+            end_date = self.end_date
 
-    def sync_events(self):
-        """
-        Sync all events for recurring event template.
+        return get_day_count(self.start_date, end_date, self.day)
 
-        Will remove all excess events outside of start/end dates,
-        and will create events if missing on a certain day.
 
-        Date filter docs:
-        https://docs.djangoproject.com/en/dev/ref/models/querysets/#week-day
-        """
-        event_count = self.expected_event_count + 2  # Buffer before/after
+class EventManager(ManagerBase["Event"]):
+    """Manage event queries."""
 
-        # Remove extra events
-        # Get all dates assigned to recurring,
-        # delete if they don't overlap with the start/end dates
-        range_start = datetime.combine(self.start_date, self.event_start_time)
-        range_end = datetime.combine(self.end_date, self.event_start_time)
+    def create(
+        self,
+        club: Club,
+        name: str,
+        start_at: Optional[datetime] = None,
+        end_at: Optional[datetime] = None,
+        # create_attendance_link=True,
+        **kwargs,
+    ):
+        """Create new event, and attendance link."""
 
-        # Django filter starts at Sun=1, python starts Mon=0
-        query_day = self.day + 2 if self.day > 0 else 6
-
-        query = self.events.filter(
-            ~models.Q(event_start__date__range=(range_start, range_end))
-            | ~models.Q(event_start__week_day=query_day)
+        event = super().create(
+            club=club, name=name, start_at=start_at, end_at=end_at, **kwargs
         )
-        query.delete()
 
-        # Create missing events
-        for i in range(event_count):
-            # Equalize date to monday (0), set to target day, set to target week (i)
-            event_date = (
-                (self.start_date - timedelta(days=self.start_date.weekday()))
-                + timedelta(days=self.day)
-                + timedelta(weeks=i)
-            )
+        # if create_attendance_link:
+        #     EventAttendanceLink.objects.create(event=event, reference="Default")
 
-            if event_date < self.start_date or event_date > self.end_date:
-                continue
-
-            event_start = datetime.combine(
-                event_date, self.event_start_time, tzinfo=timezone.utc
-            )
-            event_end = datetime.combine(
-                event_date, self.event_end_time, tzinfo=timezone.utc
-            )
-
-            # These fields must all be unique together
-            event, _ = Event.objects.update_or_create(
-                name=self.name,
-                club=self.club,
-                event_start=event_start,
-                event_end=event_end,
-                recurring_event=self,
-            )
-
-            # Set other fields
-            event.location = self.location
-
-            # Only add description if not exists
-            # Doesn't override custom description for existing events
-            if event.description is None:
-                event.description = self.description
-
-            event.save()
+        return event
 
 
 class Event(EventFields):
@@ -192,8 +214,8 @@ class Event(EventFields):
 
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="events")
 
-    event_start = models.DateTimeField(null=True, blank=True)
-    event_end = models.DateTimeField(null=True, blank=True)
+    start_at = models.DateTimeField(null=True, blank=True)
+    end_at = models.DateTimeField(null=True, blank=True)
     recurring_event = models.ForeignKey(
         RecurringEvent,
         on_delete=models.CASCADE,
@@ -202,21 +224,30 @@ class Event(EventFields):
         related_name="events",
     )
 
+    # Foreign Relationships
+    attendance_links: models.QuerySet["EventAttendanceLink"]
+
+    # Overrides
+    objects: ClassVar[EventManager] = EventManager()
+
     def __str__(self) -> str:
 
-        return super().__str__() + f' ({self.event_start.strftime("%a %m/%d")})'
+        if self.start_at:
+            return super().__str__() + f' ({self.start_at.strftime("%a %m/%d")})'
+
+        return super().__str__()
 
     class Meta:
 
         constraints = [
             models.UniqueConstraint(
-                fields=("event_start", "event_end", "club", "name"),
+                fields=("start_at", "end_at", "club", "name"),
                 name="unique_event_name_per_timerange_per_club",
             )
         ]
 
 
-class EventAttendance(BaseModel):
+class EventAttendance(ModelBase):
     """Records when members attend club event."""
 
     event = models.ForeignKey(
@@ -236,31 +267,56 @@ class EventAttendance(BaseModel):
         ]
 
 
-class QRCode(BaseModel):
-    """Store image for QR Codes."""
+class EventAttendanceLinkManager(ManagerBase["EventAttendanceLink"]):
+    """Manage queries for event links."""
 
-    get_qrcode_img_filepath = UploadFilepathFactory("")
+    def create(self, event: Event, reference: str, **kwargs):
+        """Create event attendance link, and QRCode."""
 
-    image = models.ImageField(null=True, blank=True)
-    url = models.URLField()
+        path = reverse(
+            "clubs:join-event", kwargs={"club_id": event.club.id, "event_id": event.id}
+        )
+        url = get_full_url(path)
+        display_name = kwargs.pop("display_name", f"Join {event} Link")
 
-
-# class Badge(BaseModel):
-#     """Rewards members get when criteria is met."""
-
-#     club = models.ForeignKey(Club, related_name="badges", on_delete=models.CASCADE)
-
-#     image = models.ImageField()
-#     name = models.CharField(max_length=32)
-
-
-# class PointsBadge(Badge):
-#     """Marks when members reach certain points."""
-
-#     points_required = models.IntegerField()
+        return super().create(
+            target_url=url,
+            event=event,
+            club=event.club,
+            display_name=display_name,
+            reference=reference,
+            **kwargs,
+        )
 
 
-# class AttendanceBadge(Badge):
-#     """Marks when members reach certain points."""
+class EventAttendanceLink(Link):
+    """
+    Manage links for event attendance.
 
-#     points_required = models.IntegerField()
+    Extends Link model via one-to-one relationship, sharing a pk.
+    All fields from link are accessible on this model.
+    """
+
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name="attendance_links"
+    )
+    reference = models.CharField(
+        null=True, blank=True, help_text="Used to differentiate between links"
+    )
+
+    # Overrides
+    objects: ClassVar["EventAttendanceLinkManager"] = EventAttendanceLinkManager()
+
+    def __str__(self):
+        if self.reference:
+            return f"{self.event} Link ({self.reference})"
+        else:
+            return f"{self.event} Link"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("event", "reference"),
+                name="unique_reference_per_event_attendance_link",
+            )
+        ]

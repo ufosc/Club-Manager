@@ -1,6 +1,8 @@
 import random
-from rest_framework.authentication import get_user_model
 
+from django.urls import reverse
+
+from lib.faker import fake
 from users.models import User
 from utils.helpers import reverse_query
 
@@ -16,33 +18,30 @@ def create_test_adminuser(**kwargs):
     email = f"{prefix}-admin@example.com"
     password = "testpass"
 
-    return User.objects.create_adminuser(
-        email=email, password=password, **kwargs
-    )
+    return User.objects.create_adminuser(email=email, password=password, **kwargs)
 
 
 def create_test_user(**kwargs):
     """Create user for testing purposes."""
-    prefix = random.randint(0, 500)
-    email = f"{prefix}-user@example.com"
-    password = "testpass"
-    first_name = "John"
-    last_name = "Doe"
 
-    return User.objects.create_user(
-        email=email,
-        password=password,
-        first_name=first_name,
-        last_name=last_name,
+    payload = {
+        "first_name": fake.first_name(),
+        "last_name": fake.last_name(),
+        "email": fake.safe_email(),
+        "password": fake.password(15),
         **kwargs,
-    )
+    }
+
+    return User.objects.create_user(**payload)
 
 
-def register_user_url(club: int | None = None, event: int | None = None):
-    query = {}
-    if club:
-        query["club"] = club
-    if event:
-        query["event"] = event
+def register_user_url():
+    """Get user register url."""
 
-    return reverse_query("users:register", query)
+    return reverse_query("users:register")
+
+
+def login_user_url():
+    """Get user login url."""
+
+    return reverse("users-auth:login")

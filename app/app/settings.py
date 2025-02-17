@@ -11,12 +11,21 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
-from pathlib import Path
 import sys
-
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def environ_bool(key: str, default=0):
+    return bool(int(os.environ.get(key, default)))
+
+
+def environ_list(key: str, default=""):
+    return [
+        item.strip() for item in filter(None, os.environ.get(key, default).split(","))
+    ]
 
 
 # Quick-start development settings - unsuitable for production
@@ -26,18 +35,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-changeme")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(int(os.environ.get("DEBUG", 0)))
+DEBUG = environ_bool("DEBUG", 0)
+"""Debug mode implements better logging."""
+
+DEV = environ_bool("DEV") or os.environ.get("DJANGO_ENV", "") == "dev"
+"""Dev mode installs additional development packages."""
+
+TESTING = sys.argv[1:2] == ["test"]
+NETWORK = os.environ.get("DJANGO_ENV", "dev") == "network"
 
 ALLOWED_HOSTS = []
-ALLOWED_HOSTS.extend(
-    filter(None, os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(","))
-)
+ALLOWED_HOSTS.extend(environ_list("DJANGO_ALLOWED_HOSTS"))
+ALLOWED_HOSTS.extend([os.environ.get("DJANGO_BASE_URL")])
 
-CSRF_TRUSTED_ORIGINS = [host for host in ALLOWED_HOSTS if host.startswith("http")]
-if DEBUG:
-    CSRF_TRUSTED_ORIGINS.extend(["http://0.0.0.0"])
-
-IS_TESTING_MODE = sys.argv[1:2] == ["test"]
+BASE_URL = os.environ.get("DJANGO_BASE_URL", "")
+ALLOWED_HOSTS.extend([BASE_URL])
 
 # Application definition
 
@@ -50,13 +62,16 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
-    "drf_spectacular",  # used for testing
+    "drf_spectacular",
     "core",
     "users",
+    "users.authentication",
+    "analytics",
     "clubs",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -64,8 +79,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
+
+# TODO: Add CORS settings
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = "app.urls"
 
@@ -166,4 +183,82 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
 }
 
+
+###############################
+# == Auth & Session Config == #
+###############################
+
+# Allows handling csrf and session cookies in external requests
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
+
+# Prevent csrf and session cookies from being set by JS
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = False
+
+# Only allow cookies from these origins
+CSRF_TRUSTED_ORIGINS = environ_list("CSRF_TRUSTED_ORIGINS")
+CSRF_TRUSTED_ORIGINS.extend([BASE_URL])
+
+# Only allow cookies to be sent over HTTPS
+CSRF_COOKIE_SECURE = environ_bool("CSRF_COOKIE_SECURE", True)
+SESSION_COOKIE_SECURE = environ_bool("SESSION_COOKIE_SECURE", True)
+
+# CORS Settings
+CORS_ALLOWED_ORIGINS = CSRF_TRUSTED_ORIGINS
+CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
+CORS_ALLOW_CREDENTIALS = True
+
+# Other auth settings
 AUTH_USER_MODEL = "users.User"
+LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "/auth/login/"
+
+######################
+# == Email Config == #
+######################
+
+CONSOLE_EMAIL_BACKEND = environ_bool("CONSOLE_EMAIL_BACKEND", 0)
+
+if CONSOLE_EMAIL_BACKEND:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", None)
+
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_HOST_USER = "apikey"
+EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+###############################
+# == Environment Overrides == #
+###############################
+
+if DEV:
+    import socket
+
+    INSTALLED_APPS.append("django_browser_reload")
+    INSTALLED_APPS.append("debug_toolbar")
+    INSTALLED_APPS.append("django_extensions")
+
+    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+    MIDDLEWARE.append("django_browser_reload.middleware.BrowserReloadMiddleware")
+    CSRF_TRUSTED_ORIGINS.extend(["http://0.0.0.0"])
+
+    INTERNAL_IPS = [
+        "127.0.0.1",
+        "10.0.2.2",
+    ]
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS += [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
+
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend(["http://0.0.0.0"])
+
+
+if TESTING:
+    INSTALLED_APPS.append("core.mock")
+
+    # Force disable notifications
+    EMAIL_HOST_PASSWORD = None

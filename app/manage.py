@@ -32,10 +32,13 @@ def main():
     execute_from_command_line(sys.argv)
 
     if running_tests:
-        cov.stop()
-        cov.save()
-        cov.report(skip_covered=True, skip_empty=True)
-        cov.html_report()
+        try:
+            cov.stop()
+            cov.save()
+            cov.report(skip_covered=True, skip_empty=True)
+            cov.html_report()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

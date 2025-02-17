@@ -1,26 +1,20 @@
-from rest_framework import authentication, permissions
-from rest_framework.viewsets import ModelViewSet
-
 from clubs.models import Club, ClubMembership
 from clubs.serializers import ClubMembershipSerializer, ClubSerializer
+from core.abstracts.viewsets import ModelViewSetBase
 
 
-class ClubViewSet(ModelViewSet):
+class ClubViewSet(ModelViewSetBase):
     """CRUD Api routes for Club models."""
 
     serializer_class = ClubSerializer
     queryset = Club.objects.all()
-    authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
 
 
-class ClubMembershipViewSet(ModelViewSet):
+class ClubMembershipViewSet(ModelViewSetBase):
     """CRUD Api routes for ClubMembership for a specific Club."""
 
     serializer_class = ClubMembershipSerializer
     queryset = ClubMembership.objects.all()
-    authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         club_id = self.kwargs.get("club_id", None)

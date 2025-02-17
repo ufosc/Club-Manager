@@ -2,17 +2,19 @@
 Serializers for the user API View
 """
 
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import authenticate, get_user_model
 from django.utils.translation import gettext as _  # convention import name
 from rest_framework import serializers
+from rest_framework.authtoken.models import Token
 
 from clubs.models import Club
+from core.abstracts.serializers import ModelSerializerBase
 
 
 class UserClubNestedSerializer(serializers.ModelSerializer):
     """Represents nested club info for users."""
 
-    id = serializers.CharField(source="club.id", read_only=True)
+    id = serializers.IntegerField(source="club.id", read_only=True)
     name = serializers.CharField(source="club.name", read_only=True)
     role = serializers.CharField(read_only=True)
 
@@ -21,7 +23,7 @@ class UserClubNestedSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "role"]
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(ModelSerializerBase):
     """Serialzier for the user object."""
 
     email = serializers.EmailField()
@@ -32,10 +34,10 @@ class UserSerializer(serializers.ModelSerializer):
         source="club_memberships", many=True, required=False
     )
 
-    class Meta:  # defines what is passed to the serializer
+    class Meta:
         model = get_user_model()
         fields = [
-            "id",
+            *ModelSerializerBase.default_fields,
             "username",
             "email",
             "first_name",
@@ -95,3 +97,13 @@ class AuthTokenSerializer(serializers.Serializer):
             )  # returns bad request
         attrs["user"] = user  # add user info to attributes, pass it back
         return attrs
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    """Display user token in API."""
+
+    token = serializers.CharField(source="key")
+
+    class Meta:
+        model = Token
+        fields = ("token",)

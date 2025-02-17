@@ -1,8 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from clubs.models import QRCode, RecurringEvent
-from lib.qrcodes import create_qrcode_image
+from clubs.models import Event, EventAttendanceLink, RecurringEvent
+from clubs.services import ClubService
 
 
 @receiver(post_save, sender=RecurringEvent)
@@ -12,15 +12,13 @@ def on_save_recurring_event(sender, **kwargs):
     if not kwargs.get("created", False):
         return
 
-    recurring_event.sync_events()
-    
-@receiver(post_save, sender=QRCode)
-def on_save_qrcode(sender, **kwargs):
-    qrcode = kwargs.get("instance", None)
-    
-    if not kwargs.get("created", False):
-        return
-    
-    img_path = create_qrcode_image(qrcode.url)
-    
-    
+    ClubService.sync_recurring_event(recurring_event)
+
+
+@receiver(post_save, sender=Event)
+def on_save_event(sender, instance: Event, **kwargs):
+
+    if kwargs.get("created", False):
+        # Only run when event is created
+        link = EventAttendanceLink.objects.create(event=instance, reference="Default")
+        link.generate_qrcode()

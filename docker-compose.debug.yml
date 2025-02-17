@@ -1,0 +1,51 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        - DEV=true
+    command: >
+      sh -c "pip install debugpy -t /tmp &&
+             python manage.py wait_for_db &&
+             python manage.py migrate &&
+             python manage.py init_superuser &&
+             python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000"
+    ports:
+      - 8000:8000
+      - 5678:5678
+    volumes:
+      - ./app:/app
+    environment:
+      - DJANGO_ENV=dev
+      - DB_HOST=osc-debug-db
+      - DB_NAME=devdb
+      - DB_USER=devuser
+      - DB_PASS=devpass
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=*
+      - S3_STORAGE_BACKEND=0
+      - CREATE_SUPERUSER=1
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
+      - DJANGO_SUPERUSER_PASS=${DJANGO_SUPERUSER_PASS:-changeme}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASS=${EMAIL_HOST_PASS}
+
+      - SYS_CELERY_ENABLED=0
+
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:13-alpine
+    container_name: osc-debug-db
+    volumes:
+      - gef-postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=devdb
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=devpass
+
+volumes:
+  gef-postgres:
+    name: osc-debug-db

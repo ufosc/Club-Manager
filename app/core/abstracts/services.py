@@ -1,48 +1,21 @@
-from core.abstracts.models import BaseModel
-from utils.models import get_or_none
+from typing import Generic
+
+from core.abstracts.models import ModelBase
+from utils.types import T
 
 
-class ModelService:
-    """Base service for a model."""
+class ServiceBase(Generic[T]):
+    model = ModelBase
+    obj: T
 
-    model = BaseModel
+    str_lookup = "id"
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        """Create model."""
-        return cls.model.objects.create(*args, **kwargs)
+    def __init__(self, obj: T | int | str) -> None:
+        if isinstance(obj, int) or (isinstance(obj, str) and obj.isnumeric()):
+            obj = self.model.objects.find_by_id(obj)
+        elif isinstance(obj, str):
+            obj = self.model.objects.find_one(**{self.str_lookup: obj})
 
-    @classmethod
-    def findById(cls, id: int):
-        """Find model by its id."""
-        return get_or_none(cls.model, id=id)
+        self.obj = obj
 
-    @classmethod
-    def findOne(cls, **kwargs):
-        """Find model using set of fields."""
-        return get_or_none(cls.model, **kwargs)
-
-    @classmethod
-    def find(cls, **kwargs):
-        """Find a list of models matching fields."""
-        return cls.model.objects.filter(**kwargs)
-
-    @classmethod
-    def updateOne(cls, id: int, **kwargs):
-        """Update model by id."""
-        return cls.model.objects.filter(id=id).update(**kwargs)
-
-    @classmethod
-    def update(cls, query: dict, **kwargs):
-        """Update all models matching query."""
-        return cls.model.objects.filter(**query).update(**kwargs)
-
-    @classmethod
-    def deleteOne(cls, id: int):
-        """Delete model with id."""
-        return cls.model.objects.filter(id=id).delete()
-
-    @classmethod
-    def delete(cls, **kwargs):
-        """Delete all models matching fields."""
-        return cls.model.objects.filter(**kwargs).delete()
+        super().__init__()

@@ -21,7 +21,7 @@ services:
     #   - .env
     environment:
       - PORT=9000
-      - DJANGO_ENV=dev
+      - DJANGO_ENV=network
       - DB_HOST=osc-network-db
       - DB_NAME=devdatabase
       - DB_USER=devuser
@@ -32,6 +32,10 @@ services:
       - CREATE_SUPERUSER=1
       - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
       - DJANGO_SUPERUSER_PASS=${DJANGO_SUPERUSER_PASS:-changeme}
+      
+      - CSRF_TRUSTED_ORIGINS=http://localhost:8080,http://localhost:8081,http://localhost:3000
+      - CSRF_COOKIE_SECURE=0
+      - SESSION_COOKIE_SECURE=0
     depends_on:
       - postgres
     networks:

@@ -15,25 +15,43 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularSwaggerView,
-)
-
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
+from django.views.generic import RedirectView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+from analytics.views import redirect_link_view
+from app.settings import DEV
 
 urlpatterns = [
     path("", include("core.urls")),
+    path("r/<int:link_id>/", redirect_link_view, name="redirect-link"),
     path("admin/", admin.site.urls),
+    path("auth/", include("users.authentication.urls")),
+    path("auth/", include("django.contrib.auth.urls")),
+    path("api/docs/", RedirectView.as_view(url="/api/v1/docs/"), name="api-docs-base"),
     path("api/v1/schema/club-manager", SpectacularAPIView.as_view(), name="api-schema"),
     path(
-        "api/v1/docs/club-manager",
+        "api/v1/docs/",
         SpectacularSwaggerView.as_view(url_name="api-schema"),
         name="api-docs",
     ),
     path("users/", include("users.urls")),
     path("clubs/", include("clubs.urls")),
-    path("api/v1/user/", include("users.api_urls")),
-    path("api/v1/club/", include("clubs.api_urls")),
+    path("api/v1/user/", include("users.apis")),
+    path("api/v1/club/", include("clubs.apis")),
 ]
+
+if DEV:
+    from debug_toolbar.toolbar import debug_toolbar_urls
+
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )
+    urlpatterns += debug_toolbar_urls()
+    urlpatterns.append(
+        path("__reload__/", include("django_browser_reload.urls")),
+    )
