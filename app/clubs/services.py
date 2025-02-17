@@ -40,6 +40,19 @@ class ClubService(ServiceBase[Club]):
 
         return ClubMembership.objects.create(club=self.obj, user=user, roles=roles)
 
+    def set_member_role(self, user: User, role: ClubRole):
+        """Replace a member's roles with given role."""
+
+        member = self._get_user_membership(user)
+        member.roles.clear()
+        member.roles.add(role)
+
+    def add_member_role(self, user: User, role: ClubRole):
+        """Add role to member's roles."""
+
+        member = self._get_user_membership(user)
+        member.roles.add(role)
+
     def increase_member_points(self, user: User, amount: int = 1):
         """Give the user more coins."""
         member = self._get_user_membership(user)

@@ -5,7 +5,7 @@ from core.abstracts.tests import TestsBase
 from users.tests.utils import create_test_user
 
 
-class ClubPermsTests(TestsBase):
+class ClubPermsBasicTests(TestsBase):
     """Club permissions tests."""
 
     def setUp(self):
@@ -44,3 +44,37 @@ class ClubPermsTests(TestsBase):
         self.service.add_member(self.user, roles=[role])
 
         self.assertTrue(self.user.has_perm("clubs.change_club", self.club))
+
+    def test_club_role_assignment_perms(self):
+        """When a club member is reassigned a new role, their permissions should update."""
+
+        self.service.add_member(self.user)
+        self.assertFalse(self.user.has_perm("clubs.change_club", self.club))
+        role = self.club.roles.get(role_name="Officer")
+
+        self.service.set_member_role(self.user, role)
+        self.assertTrue(self.user.has_perm("clubs.change_club", self.club))
+
+
+class ClubScopedPermsTests(TestsBase):
+    """
+    Complex tests for club permissions.
+
+    By default, there are two clubs, and the user is assigned to club 1.
+    """
+
+    def setUp(self):
+        self.club1 = create_test_club()
+        self.club2 = create_test_club()
+
+        self.service1 = ClubService(self.club1)
+        self.service2 = ClubService(self.club2)
+
+        self.user = create_test_user()
+        self.membership = self.service1.add_member(self.user)
+
+    def test_club_roles_other_clubs(self):
+        """Club roles should only apply to that club."""
+
+        self.assertTrue(self.user.has_perm("clubs.view_club", self.club1))
+        self.assertFalse(self.user.has_perm("clubs.view_club", self.club2))
