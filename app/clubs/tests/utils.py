@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from random import randint
+import uuid
 
 from django.urls import reverse
 from django.utils import timezone
@@ -15,7 +15,7 @@ CLUB_UPDATE_PARAMS = {"name": "Updated Club"}
 def create_test_club(name=None, **kwargs):
     """Create unique club for unit tests."""
     if name is None:
-        name = f"Test Club {randint(0, 100)}"
+        name = f"Test Club {uuid.uuid4()}"
 
     return Club.objects.create(name=name, **kwargs)
 

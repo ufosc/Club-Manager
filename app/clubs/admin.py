@@ -4,6 +4,7 @@ from clubs.forms import TeamMembershipForm
 from clubs.models import (
     Club,
     ClubMembership,
+    ClubRole,
     Event,
     EventAttendance,
     EventAttendanceLink,
@@ -18,13 +19,23 @@ class ClubMembershipInlineAdmin(admin.StackedInline):
     """Create club memberships in admin."""
 
     model = ClubMembership
-    extra = 1
+    extra = 0
+
+
+class ClubRoleInlineAdmin(admin.StackedInline):
+    """Manage club roles in admin."""
+
+    model = ClubRole
+    extra = 0
 
 
 class ClubAdmin(admin.ModelAdmin):
     """Admin config for Clubs."""
 
-    inlines = (ClubMembershipInlineAdmin,)
+    inlines = (
+        ClubRoleInlineAdmin,
+        ClubMembershipInlineAdmin,
+    )
     list_display = (
         "name",
         "id",
@@ -34,6 +45,16 @@ class ClubAdmin(admin.ModelAdmin):
 
     def members_count(self, obj):
         return obj.memberships.count()
+
+    def get_queryset(self, request):
+        user_club_ids = request.user.club_memberships.all().values_list("club__id")
+
+        queryset = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return queryset
+
+        return queryset.filter(id__in=user_club_ids)
 
 
 class RecurringEventAdmin(admin.ModelAdmin):

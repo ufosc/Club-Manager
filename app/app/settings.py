@@ -213,6 +213,7 @@ CORS_ALLOW_CREDENTIALS = True
 AUTH_USER_MODEL = "users.User"
 LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "/auth/login/"
+AUTHENTICATION_BACKENDS = ["core.backend.CustomBackend"]
 
 ######################
 # == Email Config == #
