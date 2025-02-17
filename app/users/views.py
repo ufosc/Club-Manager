@@ -8,7 +8,7 @@ from django.http import HttpRequest
 from django.shortcuts import redirect, render
 from rest_framework import status
 
-from clubs.models import Club, Event
+from clubs.models import Club, Event, ClubMembership
 from clubs.services import ClubService
 from users.forms import RegisterForm
 from users.services import UserService
@@ -87,7 +87,18 @@ def register_user_view(request: HttpRequest):
 @login_required()
 def user_profile_view(request: HttpRequest):
     """Display user's profile."""
-    return render(request, "users/profile.html", context={})
+    user = request.user
+    profile = user.profile
+
+    club_memberships = ClubMembership.objects.filter(user=user).select_related("club")
+    
+    context = {
+        "user": user,
+        "profile": profile,
+        "clubs": club_memberships,
+    }
+
+    return render(request, "users/profile.html", context=context)
 
 
 @login_required()
