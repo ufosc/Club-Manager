@@ -5,7 +5,7 @@ Club models.
 # from datetime import datetime, timedelta
 from typing import ClassVar, Optional
 
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Permission
 from django.core import exceptions
 from django.db import models
 from django.urls import reverse
@@ -61,20 +61,17 @@ class Club(UniqueModel):
 class ClubRoleManager(ManagerBase["ClubRole"]):
     """Manage club role queries."""
 
-    def create(
-        self, club: Club, role_name: str, default=False, perm_labels=None, **kwargs
-    ):
+    def create(self, club: Club, name: str, default=False, perm_labels=None, **kwargs):
         """
         Create new club role.
 
         Can either assign initial permissions by perm_labels as ``list[str]``, or
         by permissions as ``list[Permission]``.
         """
-        kwargs["name"] = f"{club.id} {role_name}"
         perm_labels = perm_labels if perm_labels is not None else []
         permissions = kwargs.pop("permissions", [])
 
-        role = super().create(club=club, role_name=role_name, default=default, **kwargs)
+        role = super().create(club=club, name=name, default=default, **kwargs)
 
         for perm in perm_labels:
             perm = get_permission(perm)
@@ -84,18 +81,18 @@ class ClubRoleManager(ManagerBase["ClubRole"]):
             role.permissions.add(perm)
 
 
-class ClubRole(ModelBase, Group):
+class ClubRole(ModelBase):
     """Extend permission group to manage club roles."""
 
+    name = models.CharField(max_length=32)
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="roles")
     default = models.BooleanField(
         default=False,
         help_text="New members would be automatically assigned this role.",
     )
-    role_name = models.CharField(max_length=32)
+    permissions = models.ManyToManyField(Permission, blank=True)
 
     # Overrides
-
     objects: ClassVar[ClubRoleManager] = ClubRoleManager()
 
     class Meta:
@@ -106,7 +103,7 @@ class ClubRole(ModelBase, Group):
                 name="only_one_default_club_role_per_club",
             ),
             models.UniqueConstraint(
-                fields=("role_name", "club"), name="unique_rolename_per_club"
+                fields=("name", "club"), name="unique_rolename_per_club"
             ),
         ]
 

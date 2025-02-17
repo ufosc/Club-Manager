@@ -41,7 +41,7 @@ def on_save_club(sender, instance: Club, created=False, **kwargs):
     for role in INITIAL_CLUB_ROLES:
         ClubRole.objects.create(
             club=instance,
-            role_name=role["role_name"],
+            name=role["name"],
             default=role["default"],
             perm_labels=role["permissions"],
         )

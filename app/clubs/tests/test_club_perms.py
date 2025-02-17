@@ -20,11 +20,11 @@ class ClubPermsBasicTests(TestsBase):
 
         self.assertEqual(ClubRole.objects.count(), 2)
 
-        member_role = ClubRole.objects.find_one(role_name="Member")
+        member_role = ClubRole.objects.find_one(name="Member")
         self.assertIsNotNone(member_role)
         self.assertTrue(member_role.default)
 
-        officer_role = ClubRole.objects.find_one(role_name="Officer")
+        officer_role = ClubRole.objects.find_one(name="Officer")
         self.assertIsNotNone(officer_role)
         self.assertFalse(officer_role.default)
 
@@ -40,7 +40,7 @@ class ClubPermsBasicTests(TestsBase):
     def test_club_role_change_access(self):
         """Member should inherit change perms from club role."""
 
-        role = self.club.roles.get(role_name="Officer")
+        role = self.club.roles.get(name="Officer")
         self.service.add_member(self.user, roles=[role])
 
         self.assertTrue(self.user.has_perm("clubs.change_club", self.club))
@@ -50,7 +50,7 @@ class ClubPermsBasicTests(TestsBase):
 
         self.service.add_member(self.user)
         self.assertFalse(self.user.has_perm("clubs.change_club", self.club))
-        role = self.club.roles.get(role_name="Officer")
+        role = self.club.roles.get(name="Officer")
 
         self.service.set_member_role(self.user, role)
         self.assertTrue(self.user.has_perm("clubs.change_club", self.club))

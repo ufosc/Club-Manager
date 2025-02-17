@@ -4,6 +4,7 @@ from clubs.forms import TeamMembershipForm
 from clubs.models import (
     Club,
     ClubMembership,
+    ClubRole,
     Event,
     EventAttendance,
     EventAttendanceLink,
@@ -21,10 +22,21 @@ class ClubMembershipInlineAdmin(admin.StackedInline):
     extra = 1
 
 
+class ClubRoleInlineAdmin(admin.StackedInline):
+    """Manage club roles in admin."""
+
+    model = ClubRole
+    extra = 0
+    exclude = ("name",)
+
+
 class ClubAdmin(admin.ModelAdmin):
     """Admin config for Clubs."""
 
-    inlines = (ClubMembershipInlineAdmin,)
+    inlines = (
+        ClubRoleInlineAdmin,
+        ClubMembershipInlineAdmin,
+    )
     list_display = (
         "name",
         "id",

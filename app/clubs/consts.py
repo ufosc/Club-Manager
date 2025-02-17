@@ -6,25 +6,25 @@ from typing import TypedDict
 
 
 class ClubRoleType(TypedDict):
-    role_name: str
+    name: str
     default: bool
     permissions: list[str]
 
 
 INITIAL_CLUB_ROLES: list[ClubRoleType] = [
     {
-        "role_name": "Member",
+        "name": "Member",
         "default": True,
         "permissions": [
             "clubs.view_club",
         ],
     },
     {
-        "role_name": "Officer",
+        "name": "Officer",
         "default": False,
         "permissions": [
             "clubs.view_club",
             "clubs.change_club",
-        ]
-    }
+        ],
+    },
 ]
