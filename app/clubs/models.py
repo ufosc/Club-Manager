@@ -185,6 +185,8 @@ class ClubMembership(ModelBase):
 
     def clean(self):
         """Validate membership model."""
+        if not self.pk:
+            return super().clean()
 
         for role in self.roles.all():
             if not role.club.id == self.club.id:
