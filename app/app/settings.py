@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_celery_beat",
     "rest_framework",
     "rest_framework.authtoken",
     "drf_spectacular",
@@ -231,6 +232,24 @@ EMAIL_HOST_USER = "apikey"
 EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+#######################
+# == Celery Config == #
+#######################
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND")
+CELERY_TASK_ACKS_LATE = bool(int(os.environ.get("CELERY_TASK_ACKS_LATE", "1")))
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = bool(
+    int(os.environ.get("CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP", "1"))
+)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "UTC"
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+# Custom schedules
+CELERY_BEAT_SCHEDULE = {}
 
 ###############################
 # == Environment Overrides == #
