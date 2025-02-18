@@ -14,20 +14,17 @@ from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
 
 from analytics.models import Link
-from core.abstracts.models import ManagerBase, ModelBase, UniqueModel
+from core.abstracts.models import (
+    ManagerBase,
+    ModelBase,
+    Scope,
+    UniqueModel,
+)
 from users.models import User
 from utils.dates import get_day_count
 from utils.helpers import get_full_url
 from utils.models import UploadFilepathFactory
 from utils.permissions import get_permission
-
-
-# TODO: Implement RBAC, custom roles
-# Ref: https://medium.com/@subhamx/role-based-access-control-in-django-the-right-features-to-the-right-users-9e93feb8a3b1 # noqa: E501
-class ClubRoles(models.TextChoices):
-    PRESIDENT = "president", _("President")
-    OFFICER = "officer", _("Officer")
-    MEMBER = "member", _("Member")
 
 
 class DayChoice(models.IntegerChoices):
@@ -43,6 +40,8 @@ class DayChoice(models.IntegerChoices):
 class Club(UniqueModel):
     """Group of users."""
 
+    scope = Scope.CLUB
+
     get_logo_filepath = UploadFilepathFactory("clubs/logos/")
 
     name = models.CharField(max_length=64, unique=True)
@@ -54,6 +53,11 @@ class Club(UniqueModel):
     roles: models.QuerySet["ClubRole"]
 
     # Overrides
+    @property
+    def club(self):
+        """Used for permissions checking."""
+        return self
+
     class Meta:
         permissions = [("preview_club", "Can view a set of limited fields for a club.")]
 
@@ -123,7 +127,7 @@ class ClubRole(ModelBase):
 
 
 class ClubMembershipManager(ManagerBase["ClubMembership"]):
-    """Manage queries for ClubMemberships"""
+    """Manage queries for ClubMemberships."""
 
     def create(
         self, club: Club, user: User, roles: Optional[list[ClubRole]] = None, **kwargs
@@ -152,8 +156,6 @@ class ClubMembership(ModelBase):
     )
 
     owner = models.BooleanField(default=False, blank=True)
-
-    # TODO: Should this be split to own model? Keep history of point changes?
     points = models.IntegerField(default=0, blank=True)
     roles = models.ManyToManyField(ClubRole)
 
@@ -200,8 +202,10 @@ class ClubMembership(ModelBase):
 class Team(ModelBase):
     """Smaller groups within clubs."""
 
-    name = models.CharField(max_length=64)
+    scope = Scope.CLUB
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="teams")
+
+    name = models.CharField(max_length=64)
     points = models.IntegerField(default=0, blank=True)
 
     # Foreign Relationships
@@ -322,6 +326,7 @@ class Event(EventFields):
     https://docs.djangoproject.com/en/5.1/ref/contrib/postgres/fields/#datetimerangefield
     """
 
+    scope = Scope.CLUB
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="events")
 
     start_at = models.DateTimeField(null=True, blank=True)

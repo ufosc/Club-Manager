@@ -40,15 +40,21 @@ class ClubService(ServiceBase[Club]):
 
         return ClubMembership.objects.create(club=self.obj, user=user, roles=roles)
 
-    def set_member_role(self, user: User, role: ClubRole):
+    def set_member_role(self, user: User, role: ClubRole | str):
         """Replace a member's roles with given role."""
+
+        if isinstance(role, str):
+            role = self.obj.roles.get(name=role)
 
         member = self._get_user_membership(user)
         member.roles.clear()
         member.roles.add(role)
 
-    def add_member_role(self, user: User, role: ClubRole):
+    def add_member_role(self, user: User, role: ClubRole | str):
         """Add role to member's roles."""
+
+        if isinstance(role, str):
+            role = self.obj.roles.get(name=role)
 
         member = self._get_user_membership(user)
         member.roles.add(role)

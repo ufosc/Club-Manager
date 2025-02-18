@@ -17,6 +17,8 @@ INITIAL_CLUB_ROLES: list[ClubRoleType] = [
         "default": True,
         "permissions": [
             "clubs.view_club",
+            "clubs.view_event",
+            "clubs.view_team",
         ],
     },
     {
@@ -25,6 +27,10 @@ INITIAL_CLUB_ROLES: list[ClubRoleType] = [
         "permissions": [
             "clubs.view_club",
             "clubs.change_club",
+            "clubs.view_event",
+            "clubs.change_event",
+            "clubs.view_team",
+            "clubs.change_team",
         ],
     },
 ]
