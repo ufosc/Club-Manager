@@ -14,12 +14,7 @@ from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
 
 from analytics.models import Link
-from core.abstracts.models import (
-    ManagerBase,
-    ModelBase,
-    Scope,
-    UniqueModel,
-)
+from core.abstracts.models import ManagerBase, ModelBase, Scope, UniqueModel
 from users.models import User
 from utils.dates import get_day_count
 from utils.helpers import get_full_url

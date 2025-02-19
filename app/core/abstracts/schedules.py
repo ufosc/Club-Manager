@@ -1,9 +1,10 @@
 import json
+
 from celery import shared_task
 from django.apps import apps
 from django.db import models
-from django_celery_beat.models import CrontabSchedule, IntervalSchedule, PeriodicTask
 from django.utils.translation import gettext_lazy as _
+from django_celery_beat.models import CrontabSchedule, IntervalSchedule, PeriodicTask
 
 from core.abstracts.models import ModelBase
 from utils.helpers import get_import_path, import_from_path

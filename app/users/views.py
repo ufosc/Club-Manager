@@ -8,7 +8,7 @@ from django.http import HttpRequest
 from django.shortcuts import redirect, render
 from rest_framework import status
 
-from clubs.models import Club, Event, ClubMembership
+from clubs.models import Club, ClubMembership, Event
 from clubs.services import ClubService
 from users.forms import RegisterForm
 from users.services import UserService
@@ -91,7 +91,7 @@ def user_profile_view(request: HttpRequest):
     profile = user.profile
 
     club_memberships = ClubMembership.objects.filter(user=user).select_related("club")
-    
+
     context = {
         "user": user,
         "profile": profile,
