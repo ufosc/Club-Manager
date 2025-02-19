@@ -17,6 +17,11 @@ class TeamMembershipForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        if not hasattr(self, "parent_model"):
+            self.fields["user"].queryset = User.objects.none()
+
+            return
+
         self.fields["team"].initial = self.parent_model
         self.fields["user"].queryset = User.objects.filter(
             club_memberships__club__id=self.parent_model.club.id

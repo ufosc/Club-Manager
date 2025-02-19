@@ -2,6 +2,7 @@
 Abstract models for common fields.
 """
 
+from enum import Enum
 import uuid
 from typing import Any, ClassVar, Generic, MutableMapping, Optional, Self
 
@@ -109,6 +110,13 @@ class ManagerBase(models.Manager, Generic[T]):
         return super().all()
 
 
+class Scope(Enum):
+    """Permission levels."""
+
+    GLOBAL = "global"
+    CLUB = "club"
+
+
 class ModelBase(models.Model):
     """
     Default fields for all models.
@@ -117,6 +125,9 @@ class ModelBase(models.Model):
     default __str__ method that returns name or display_name
     if the field exists on the model.
     """
+
+    scope = Scope.GLOBAL
+    """Defines permissions level applied to model."""
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)

@@ -2,6 +2,7 @@ from urllib.parse import urljoin
 
 from django.http import HttpRequest
 from django.urls import reverse
+from django.utils.module_loading import import_string
 
 from app.settings import BASE_URL
 
@@ -37,3 +38,40 @@ def get_full_url(path: str):
     """Get full url of a sub path using root domain."""
 
     return urljoin(BASE_URL, path)
+
+
+def get_import_path(symbol):
+    """
+    Get a string version of class or function to be imported by
+    a celery task or other thread operation.
+
+    Parameters
+    ----------
+        - symbol (class, callable): The class, function, or other object to get import string of.
+
+    Example
+    -------
+    ```
+    # file_one.py
+    class Something:
+        pass
+
+    obj_path = get_import_path(Something)
+
+    # file_two.py
+    Something = import_from_path(obj_path)
+    ```
+    """
+
+    return f"{symbol.__module__}.{symbol.__qualname__}"
+
+
+def import_from_path(path: str):
+    """
+    Get a symbol from its import path.
+
+    Reverse function for `get_import_path`.
+    Wraps django's default `import_string` function.
+    """
+
+    return import_string(path)

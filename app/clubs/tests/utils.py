@@ -4,7 +4,7 @@ import uuid
 from django.urls import reverse
 from django.utils import timezone
 
-from clubs.models import Club, Event
+from clubs.models import Club, Event, Team
 
 CLUB_CREATE_PARAMS = {
     "name": "Test Club",
@@ -44,6 +44,14 @@ def create_test_event(
         description=description,
         **kwargs,
     )
+
+
+def create_test_team(club: Club, **kwargs):
+    """Create valid team for unit tests."""
+
+    payload = {"name": kwargs.pop("name", f"Team {uuid.uuid4()}"), **kwargs}
+
+    return Team.objects.create(club=club, **payload)
 
 
 def join_club_url(club_id: int):
