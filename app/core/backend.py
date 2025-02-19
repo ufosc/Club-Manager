@@ -1,4 +1,5 @@
 import re
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import Permission
@@ -6,7 +7,6 @@ from django.shortcuts import get_object_or_404
 
 from core.abstracts.models import Scope
 from utils.permissions import get_permission
-
 
 User = get_user_model()
 
