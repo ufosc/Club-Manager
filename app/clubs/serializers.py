@@ -19,7 +19,7 @@ class ClubMemberNestedSerializer(serializers.ModelSerializer):
             "user_id",
             "username",
             "owner",
-            "role",
+            # "role",
             "points",
         ]
 
@@ -55,7 +55,7 @@ class ClubMembershipSerializer(ModelSerializerBase):
             *ModelSerializerBase.default_fields,
             "user_id",
             "club_id",
-            "role",
+            # "role",
             "owner",
             "points",
         ]

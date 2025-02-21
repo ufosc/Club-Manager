@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "users.authentication",
     "analytics",
     "clubs",
+    # "clubs.polls",
 ]
 
 MIDDLEWARE = [
@@ -80,6 +81,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "core.middleware.TimezoneMiddleware",
 ]
 
 # TODO: Add CORS settings
@@ -90,14 +93,19 @@ ROOT_URLCONF = "app.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
+        "DIRS": [os.path.join(BASE_DIR, "templates"), os.path.join(BASE_DIR, "core/templates")],
+        # "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+            ],
+            "loaders": [
+                "django.template.loaders.filesystem.Loader",
+                "django.template.loaders.app_directories.Loader",
+                "admin_tools.template_loaders.Loader",
             ],
         },
     },
@@ -144,6 +152,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
+# TIME_ZONE = "America/New_York" # TODO: UTC
 TIME_ZONE = "UTC"
 
 USE_I18N = True
