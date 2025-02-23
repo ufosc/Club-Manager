@@ -3,7 +3,7 @@
 <section>
   <h1>{{ poll.name }}</h1>
   <p>{{ poll.description }}</p>
-  <form action="">
+  <form method="POST">
     {% csrf_token %}
     {% for field in poll.fields.all %}
     <fieldset>
@@ -57,6 +57,8 @@
       {% endif %}
     </fieldset>
     {% endfor %}
+    
+    <input type="submit" value="Submit">
   </form>
 </section>
 

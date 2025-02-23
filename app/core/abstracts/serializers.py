@@ -25,7 +25,7 @@ class ModelSerializer(ModelSerializerBase):
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
-class StringListField(serializers.Field):
+class StringListField(serializers.CharField):
     """Represent a comma-separated string as a list of strings."""
 
     def to_representation(self, value: str):
