@@ -25,11 +25,9 @@ class BaseMiddleware(ABC):
         Code to be executed for each request before
         the view (and later middleware) are called.
         """
-        pass
 
     def on_response(self, response: HttpResponse, *args, **kwargs):
         """
         Code to be executed for each request/response after
         the view is called.
         """
-        pass

@@ -1,10 +1,4 @@
-from clubs.polls.models import (
-    Poll,
-    PollField,
-    PollQuestion,
-    PollInputType,
-    TextInput,
-)
+from clubs.polls.models import Poll, PollField, PollInputType, PollQuestion, TextInput
 from core.abstracts.tests import TestsBase
 from lib.faker import fake
 

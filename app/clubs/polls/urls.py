@@ -1,4 +1,5 @@
 from django.urls import path
+
 from clubs.polls import views
 
 app_name = "polls"

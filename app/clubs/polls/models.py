@@ -23,12 +23,14 @@ Poll
 """
 
 from typing import ClassVar, Optional
+
 from django.core import exceptions
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+
 from core.abstracts.models import ManagerBase, ModelBase
 from users.models import User
-from django.utils.translation import gettext_lazy as _
 
 
 class PollInputType(models.TextChoices):
