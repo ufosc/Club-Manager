@@ -22,12 +22,13 @@ Poll
 -- -- -- Upload Input
 """
 
-from typing import ClassVar
+from typing import ClassVar, Optional
 from django.core import exceptions
 from django.core.validators import MinValueValidator
 from django.db import models
 from core.abstracts.models import ManagerBase, ModelBase
 from users.models import User
+from django.utils.translation import gettext_lazy as _
 
 
 class PollInputType(models.TextChoices):
@@ -50,23 +51,23 @@ class PollFieldType(models.TextChoices):
 class PollTextInputType(models.TextChoices):
     """Different ways of inputing text responses."""
 
-    SHORT = "short"
-    LONG = "long"
-    RICH = "rich"
+    SHORT = "short", _("Short Text Input")
+    LONG = "long", _("Long Text Input")
+    RICH = "rich", _("Rich Text Input")
 
 
 class PollSingleChoiceType(models.TextChoices):
     """Different ways of showing single choice fields."""
 
-    SELECT = "select"
-    RADIO = "radio"
+    SELECT = "select", _("Single Dropdown Select")
+    RADIO = "radio", _("Single Radio Select")
 
 
 class PollMultiChoiceType(models.TextChoices):
     """Different ways of showing multichoice fields."""
 
-    SELECT = "select"
-    CHECKBOX = "checkbox"
+    SELECT = "select", _("Multi Select Box")
+    CHECKBOX = "checkbox", _("Multi Checkbox Select")
 
 
 class PollManager(ManagerBase["Poll"]):
@@ -96,11 +97,11 @@ class PollField(ModelBase):
     order = models.IntegerField()
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                name="unique_field_order_per_poll", fields=("order", "poll")
-            ),
-        ]
+        ordering = ["order", "-id"]
+
+    def __str__(self):
+
+        return f"{self.poll} - {self.order}"
 
     def clean(self):
         """
@@ -193,8 +194,74 @@ class PollQuestion(ModelBase):
     image = models.ImageField(null=True, blank=True)
     required = models.BooleanField(default=False)
 
+    @property
+    def html_name(self):
+        return f"field-{self.field.id}"
+
+    @property
+    def html_id(self):
+        if self.input is None:
+            return "input-unknown"
+        return f"input-{self.input.id}"
+
+    @property
+    def input(self):
+        match self.input_type:
+            case PollInputType.TEXT:
+                return self.text_input
+            case PollInputType.CHOICE:
+                return self.choice_input
+            case PollInputType.RANGE:
+                return self.range_input
+            case PollInputType.UPLOAD:
+                return self.upload_input
+
+        return None
+
+    @property
+    def widget(self):
+        if not self.input:
+            return None
+
+        return self.input.widget
+
+    # Foreign relationships
+    @property
+    def text_input(self) -> Optional["TextInput"]:
+        if not hasattr(self, "_text_input"):
+            return None
+
+        return self._text_input
+
+    @property
+    def choice_input(self) -> Optional["ChoiceInput"]:
+        if not hasattr(self, "_choice_input"):
+            return None
+
+        return self._choice_input
+
+    @property
+    def range_input(self) -> Optional["RangeInput"]:
+        if not hasattr(self, "_range_input"):
+            return None
+
+        return self._range_input
+
+    @property
+    def upload_input(self) -> Optional["UploadInput"]:
+        if not hasattr(self, "_upload_input"):
+            return None
+
+        return self._upload_input
+
     # Overrides
     objects: ClassVar[PollQuestionManager] = PollQuestionManager()
+
+    class Meta:
+        ordering = ["field", "-id"]
+
+    def __str__(self):
+        return self.label
 
 
 class TextInput(ModelBase):
@@ -206,7 +273,7 @@ class TextInput(ModelBase):
     """
 
     question = models.OneToOneField(
-        PollQuestion, on_delete=models.CASCADE, related_name="text_input"
+        PollQuestion, on_delete=models.CASCADE, related_name="_text_input"
     )
 
     text_type = models.CharField(
@@ -216,6 +283,10 @@ class TextInput(ModelBase):
         null=True, blank=True, default=1, validators=[MinValueValidator(1)]
     )
     max_length = models.PositiveIntegerField(null=True, blank=True)
+
+    @property
+    def widget(self):
+        return PollTextInputType(self.text_type).label
 
     # Overrides
     class Meta:
@@ -231,7 +302,7 @@ class ChoiceInput(ModelBase):
     """Dropdown or radio field."""
 
     question = models.OneToOneField(
-        PollQuestion, on_delete=models.CASCADE, related_name="choice_input"
+        PollQuestion, on_delete=models.CASCADE, related_name="_choice_input"
     )
 
     multiple = models.BooleanField(default=False)
@@ -248,8 +319,16 @@ class ChoiceInput(ModelBase):
         default=PollSingleChoiceType.RADIO,
     )
 
+    @property
+    def widget(self):
+        if self.multiple:
+            return PollMultiChoiceType(self.multiple_choice_type).label
+        else:
+            return PollSingleChoiceType(self.single_choice_type).label
+
     # Overrides
     class Meta:
+        ordering = ["question__field", "-id"]
         constraints = [
             # Multiple/single choice types can be set at same time,
             # so if user toggles between them their preference is saved.
@@ -261,6 +340,9 @@ class ChoiceInput(ModelBase):
                 ),
             )
         ]
+
+    def __str__(self):
+        return f"{self.question.field} - {self.widget}"
 
     def save(self, *args, **kwargs):
         # Enforce defaults, in case user deletes field type but keeps "multiple" selection
@@ -279,18 +361,22 @@ class ChoiceInputOption(ModelBase):
         ChoiceInput, on_delete=models.CASCADE, related_name="options"
     )
 
-    label = models.CharField(max_length=100)
     order = models.IntegerField()
+    label = models.CharField(max_length=100)
     value = models.CharField(blank=True, default="", max_length=100)
     image = models.ImageField(null=True, blank=True)
 
+    @property
+    def html_name(self):
+        return self.input.question.html_name
+
+    @property
+    def html_id(self):
+        return f"option-{self.id}"
+
     # Overrides
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                name="unique_choiceoption_order_per_input", fields=("order", "input")
-            ),
-        ]
+        ordering = ["order", "-id"]
 
     def clean(self):
         """Validate data before it hits database."""
@@ -306,7 +392,7 @@ class RangeInput(ModelBase):
     """Slider input."""
 
     question = models.OneToOneField(
-        PollQuestion, on_delete=models.CASCADE, related_name="range_input"
+        PollQuestion, on_delete=models.CASCADE, related_name="_range_input"
     )
 
     min_value = models.IntegerField(default=0)
@@ -315,17 +401,25 @@ class RangeInput(ModelBase):
     initial_value = models.IntegerField(default=0)
     unit = models.CharField(max_length=10, null=True, blank=True)
 
+    @property
+    def widget(self):
+        return "Slide Range"
+
 
 class UploadInput(ModelBase):
     """Upload button, file input."""
 
     question = models.OneToOneField(
-        PollQuestion, on_delete=models.CASCADE, related_name="upload_input"
+        PollQuestion, on_delete=models.CASCADE, related_name="_upload_input"
     )
 
     # TODO: How to handle list of file types?
     file_types = models.CharField(default="any")
     max_files = models.IntegerField(default=1)
+
+    @property
+    def widget(self):
+        return "File Upload"
 
 
 class PollSubmission(ModelBase):

@@ -3,6 +3,8 @@ Club Polls Admin.
 """
 
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from clubs.polls.models import (
     ChoiceInput,
@@ -16,6 +18,32 @@ from clubs.polls.models import (
     TextInput,
     UploadInput,
 )
+
+
+class PollFieldInlineAdmin(admin.StackedInline):
+    """Manage fields in poll admin."""
+
+    model = PollField
+    extra = 0
+    readonly_fields = ("question",)
+    ordering = ("order",)
+
+
+class PollAdmin(admin.ModelAdmin):
+    """Manage poll objects in admin."""
+
+    list_display = ("__str__", "field_count", "view_poll")
+
+    inlines = (PollFieldInlineAdmin,)
+    readonly_fields = ("field_count", "view_poll")
+
+    def field_count(self, obj):
+        return obj.fields.count()
+
+    def view_poll(self, obj):
+        return mark_safe(
+            f"<a href=\"{reverse('clubs:polls:poll', args=[obj.id])}\" target='_blank'>View Poll</a>"
+        )
 
 
 class TextInputInlineAdmin(admin.TabularInline):
@@ -49,6 +77,8 @@ class UploadInputInlineAdmin(admin.TabularInline):
 class PollQuestionAdmin(admin.ModelAdmin):
     """Manage poll questions in admin."""
 
+    list_display = ("__str__", "field", "input_type", "widget")
+
     inlines = (
         TextInputInlineAdmin,
         ChoiceInputInlineAdmin,
@@ -57,21 +87,25 @@ class PollQuestionAdmin(admin.ModelAdmin):
     )
 
 
-class PollFieldInlineAdmin(admin.StackedInline):
-    """Manage fields in poll admin."""
+class ChoiceOptionInlineAdmin(admin.TabularInline):
+    """Manage option choices in poll choice admin."""
 
-    model = PollField
+    model = ChoiceInputOption
     extra = 1
 
 
-class PollAdmin(admin.ModelAdmin):
-    """Manage poll objects in admin."""
+class ChoiceInputAdmin(admin.ModelAdmin):
+    """Manage poll choice inputs in admin."""
 
-    inlines = (PollFieldInlineAdmin,)
+    list_display = ("__str__", "options_count")
+    inlines = (ChoiceOptionInlineAdmin,)
+
+    def options_count(self, obj):
+        return obj.options.count()
 
 
 admin.site.register(Poll, PollAdmin)
 admin.site.register(PollQuestion, PollQuestionAdmin)
 admin.site.register(PollMarkup)
-admin.site.register(ChoiceInputOption)
+admin.site.register(ChoiceInput, ChoiceInputAdmin)
 admin.site.register(PollSubmission)
