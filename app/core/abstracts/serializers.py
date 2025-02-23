@@ -16,5 +16,27 @@ class ModelSerializerBase(serializers.ModelSerializer):
 
     default_fields = ["id", "created_at", "updated_at"]
 
+
+class ModelSerializer(ModelSerializerBase):
+    """Base fields for model serializer."""
+
     class Meta:
+        fields = "__all__"
         read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class StringListField(serializers.Field):
+    """Represent a comma-separated string as a list of strings."""
+
+    def to_representation(self, value: str):
+        """Convert to list for json."""
+
+        return value.split(",")
+
+    def to_internal_value(self, data):
+        """Convert to string for database."""
+
+        if isinstance(data, list):
+            return ",".join(data)
+
+        return data

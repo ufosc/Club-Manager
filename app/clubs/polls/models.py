@@ -1,7 +1,7 @@
 """
 Custom forms for clubs.
 Form interface is a mixture between Google Forms, Jupyter Notebook,
-Gravity Forms, and SendGrid.
+Gravity Forms (WordPress plugin), and SendGrid.
 
 Google Forms: Mimic form data structure
 Jupyter Notebook: Mimic markup capabilities
@@ -18,8 +18,9 @@ Poll
 -- -- Markup
 """
 
-from typing import ClassVar
+from typing import ClassVar, Optional
 from django.core import exceptions
+from django.core.validators import MinValueValidator
 from django.db import models
 from core.abstracts.models import ManagerBase, ModelBase
 from users.models import User
@@ -28,8 +29,7 @@ from users.models import User
 class PollInputType(models.TextChoices):
     """Types of fields a user can add to a poll."""
 
-    SHORT_TEXT = "short_text"
-    LONG_TEXT = "long_text"
+    TEXT = "text"
     CHOICE = "choice"
     RANGE = "range"
     UPLOAD = "upload"
@@ -41,6 +41,28 @@ class PollFieldType(models.TextChoices):
     QUESTION = "question"
     PAGE_BREAK = "page_break"
     MARKUP = "markup"
+
+
+class PollTextInputType(models.TextChoices):
+    """Different ways of inputing text responses."""
+
+    SHORT = "short"
+    LONG = "long"
+    RICH = "rich"
+
+
+class PollSingleChoiceType(models.TextChoices):
+    """Different ways of showing single choice fields."""
+
+    SELECT = "select"
+    RADIO = "radio"
+
+
+class PollMultiChoiceType(models.TextChoices):
+    """Different ways of showing multichoice fields."""
+
+    SELECT = "select"
+    CHECKBOX = "checkbox"
 
 
 class PollManager(ManagerBase["Poll"]):
@@ -60,22 +82,71 @@ class Poll(ModelBase):
     objects: ClassVar[PollManager] = PollManager()
 
 
-class ShortTextInput(ModelBase):
-    """Single line input."""
+class TextInput(ModelBase):
+    """
+    Text input, textarea, or rich text editor.
 
-    value = models.CharField(max_length=255, default="")
+    If character count is 0, then field is empty, and should
+    raise error if the field is required.
+    """
 
+    text_type = models.CharField(
+        choices=PollTextInputType.choices, default=PollTextInputType.SHORT
+    )
+    min_length = models.PositiveIntegerField(
+        null=True, blank=True, default=1, validators=[MinValueValidator(1)]
+    )
+    max_length = models.PositiveIntegerField(null=True, blank=True)
 
-class LongTextInput(ModelBase):
-    """Textarea input."""
-
-    value = models.TextField(default="")
+    # Overrides
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                name="min_length_less_than_max_length",
+                check=models.Q(min_length__lt=models.F("max_length")),
+            ),
+        ]
 
 
 class ChoiceInput(ModelBase):
     """Dropdown or radio field."""
 
     multiple = models.BooleanField(default=False)
+    multiple_choice_type = models.CharField(
+        choices=PollMultiChoiceType.choices,
+        null=True,
+        blank=True,
+        default=PollMultiChoiceType.CHECKBOX,
+    )
+    single_choice_type = models.CharField(
+        choices=PollSingleChoiceType.choices,
+        null=True,
+        blank=True,
+        default=PollSingleChoiceType.RADIO,
+    )
+
+    # Overrides
+    class Meta:
+        constraints = [
+            # Multiple/single choice types can be set at same time,
+            # so if user toggles between them their preference is saved.
+            models.CheckConstraint(
+                name="poll_choice_type",
+                check=(
+                    models.Q(multiple=True, multiple_choice_type__isnull=False)
+                    | models.Q(multiple=False, single_choice_type__isnull=False)
+                ),
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        # Enforce defaults, in case user deletes field type but keeps "multiple" selection
+        if self.multiple is True and self.multiple_choice_type is None:
+            self.multiple_choice_type = PollMultiChoiceType.CHECKBOX
+        elif self.multiple is False and self.single_choice_type is None:
+            self.single_choice_type = PollSingleChoiceType.RADIO
+
+        return super().save(*args, **kwargs)
 
 
 class ChoiceInputOption(ModelBase):
@@ -85,8 +156,27 @@ class ChoiceInputOption(ModelBase):
         ChoiceInput, on_delete=models.CASCADE, related_name="options"
     )
 
-    label = models.CharField(default="")
-    value = models.CharField(default="")
+    label = models.CharField(max_length=100)
+    value = models.CharField(blank=True, default="", max_length=100)
+    image = models.ImageField(null=True, blank=True)
+    order = models.IntegerField()
+
+    # Overrides
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="unique_choiceoption_order_per_input", fields=("order", "input")
+            ),
+        ]
+
+    def clean(self):
+        """Validate data before it hits database."""
+
+        # Allow user to only provide label, value will sync
+        if self.value is None or self.value.strip() == "":
+            self.value = self.label
+
+        return super().clean()
 
 
 class RangeInput(ModelBase):
@@ -94,13 +184,17 @@ class RangeInput(ModelBase):
 
     min_value = models.IntegerField(default=0)
     max_value = models.IntegerField(default=100)
+    step = models.IntegerField(default=1)
     initial_value = models.IntegerField(default=0)
+    unit = models.CharField(max_length=10, null=True, blank=True)
 
 
 class UploadInput(ModelBase):
     """Upload button, file input."""
 
-    pass
+    # TODO: How to handle list of file types?
+    file_types = models.CharField(default="any")
+    max_files = models.IntegerField(default=1)
 
 
 class PollQuestionManager(ManagerBase["PollQuestion"]):
@@ -109,38 +203,41 @@ class PollQuestionManager(ManagerBase["PollQuestion"]):
     def create(
         self,
         label: str,
-        question_type: PollInputType,
+        input_type: PollInputType,
         question_kwargs=None,
         **kwargs,
     ):
         input_class = None
+        input_name = None
         question_kwargs = question_kwargs or {}
 
-        match question_type:
-            case PollInputType.SHORT_TEXT:
-                input_class = ShortTextInput
-                input_name = "short_text_input"
-            case PollInputType.LONG_TEXT:
-                input_class = LongTextInput
-                input_name = "long_text_input"
+        match input_type:
+            case PollInputType.TEXT:
+                if kwargs.get("text_input") is None:
+                    input_class = TextInput
+                    input_name = "text_input"
             case PollInputType.CHOICE:
-                input_class = ChoiceInput
-                input_name = "choice_input"
+                if kwargs.get("choice_input") is None:
+                    input_class = ChoiceInput
+                    input_name = "choice_input"
             case PollInputType.RANGE:
-                input_class = RangeInput
-                input_name = "range_input"
+                if kwargs.get("range_input") is None:
+                    input_class = RangeInput
+                    input_name = "range_input"
             case PollInputType.UPLOAD:
-                input_class = UploadInput
-                input_name = "upload_input"
+                if kwargs.get("upload_input") is None:
+                    input_class = UploadInput
+                    input_name = "upload_input"
             case _:
-                input_class = ShortTextInput
-                input_name = "short_text_input"
+                if kwargs.get("text_input") is None:
+                    input_class = TextInput
+                    input_name = "text_input"
 
-        input = input_class.objects.create(**question_kwargs)
+        if input_class is not None:
+            input = input_class.objects.create(**question_kwargs)
+            kwargs[input_name] = input
 
-        return super().create(
-            label=label, question_type=question_type, **{input_name: input}, **kwargs
-        )
+        return super().create(label=label, input_type=input_type, **kwargs)
 
 
 class PollQuestion(ModelBase):
@@ -153,22 +250,18 @@ class PollQuestion(ModelBase):
     Validation is handled at the field level.
     """
 
-    label = models.TextField()
-    question_type = models.CharField(
-        choices=PollInputType.choices, default=PollInputType.SHORT_TEXT
-    )
+    label = models.CharField()
+    description = models.TextField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True)
     required = models.BooleanField(default=False)
 
-    # Union - Only one of these
-    short_text_input = models.OneToOneField(
-        ShortTextInput,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="question",
+    input_type = models.CharField(
+        choices=PollInputType.choices, default=PollInputType.TEXT
     )
-    long_text_input = models.OneToOneField(
-        LongTextInput,
+
+    # Union - Only one of these
+    text_input = models.OneToOneField(
+        TextInput,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -203,41 +296,36 @@ class PollQuestion(ModelBase):
         # Implement validation at db level to ensure integrety
         constraints = [
             models.CheckConstraint(
-                condition=(
+                check=(
                     models.Q(
-                        short_text_input__isnull=False,
-                        long_text_input__isnull=True,
+                        text_input__isnull=False,
                         choice_input__isnull=True,
                         range_input__isnull=True,
                         upload_input__isnull=True,
                     )
                     | models.Q(
-                        short_text_input__isnull=True,
-                        long_text_input__isnull=False,
-                        choice_input__isnull=True,
-                        range_input__isnull=True,
-                        upload_input__isnull=True,
-                    )
-                    | models.Q(
-                        short_text_input__isnull=True,
-                        long_text_input__isnull=True,
+                        text_input__isnull=True,
                         choice_input__isnull=False,
                         range_input__isnull=True,
                         upload_input__isnull=True,
                     )
                     | models.Q(
-                        short_text_input__isnull=True,
-                        long_text_input__isnull=True,
+                        text_input__isnull=True,
                         choice_input__isnull=True,
                         range_input__isnull=False,
                         upload_input__isnull=True,
                     )
                     | models.Q(
-                        short_text_input__isnull=True,
-                        long_text_input__isnull=True,
+                        text_input__isnull=True,
                         choice_input__isnull=True,
                         range_input__isnull=True,
                         upload_input__isnull=False,
+                    )
+                    | models.Q(
+                        text_input__isnull=True,
+                        choice_input__isnull=True,
+                        range_input__isnull=True,
+                        upload_input__isnull=True,
                     )
                 ),
                 name="poll_question_union_type",
@@ -249,8 +337,7 @@ class PollQuestion(ModelBase):
         nonnull_fields = [
             field
             for field in [
-                self.short_text_input,
-                self.long_text_input,
+                self.text_input,
                 self.choice_input,
                 self.range_input,
                 self.upload_input,
@@ -278,73 +365,132 @@ class PollMarkup(ModelBase):
     content = models.TextField(default="")
 
 
+class PollFieldManager(ManagerBase["PollField"]):
+    """Manage queries for Poll Fields."""
+
+    def create(
+        self,
+        poll: Poll,
+        order: int,
+        field_type: Optional[PollFieldType] = None,
+        question=None,
+        page_break=None,
+        markup=None,
+        **kwargs,
+    ):
+
+        if field_type == PollFieldType.PAGE_BREAK:
+            if page_break is None:
+                page_break = PollPageBreak.objects.create()
+        elif field_type == PollFieldType.MARKUP:
+            if markup is None:
+                markup = PollMarkup.objects.create()
+
+        return super().create(
+            poll=poll,
+            field_type=field_type,
+            order=order,
+            question=question,
+            page_break=page_break,
+            markup=markup,
+            **kwargs,
+        )
+
+
 class PollField(ModelBase):
     """Custom question field for poll forms."""
 
-    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="items")
-    field_type = models.CharField(choices=PollFieldType.choices)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="fields")
+    field_type = models.CharField(
+        choices=PollFieldType.choices, default=PollFieldType.QUESTION
+    )
+    order = models.IntegerField()
 
     # Union - Can only be one of the following
     question = models.OneToOneField(
         PollQuestion,
         on_delete=models.SET_NULL,
-        related_name="item",
+        related_name="field",
         null=True,
         blank=True,
     )
     page_break = models.OneToOneField(
         PollPageBreak,
         on_delete=models.SET_NULL,
-        related_name="item",
+        related_name="field",
         null=True,
         blank=True,
     )
     markup = models.OneToOneField(
         PollMarkup,
         on_delete=models.SET_NULL,
-        related_name="item",
+        related_name="field",
         null=True,
         blank=True,
     )
 
     # Overrides
+    objects: ClassVar[PollFieldManager] = PollFieldManager()
+
     class Meta:
         constraints = [
+            models.UniqueConstraint(
+                name="unique_field_order_per_poll", fields=("order", "poll")
+            ),
             models.CheckConstraint(
                 name="poll_field_union_type",
-                condition=(
+                check=(
                     models.Q(
                         field_type=PollFieldType.QUESTION,
-                        question__isnull=False,
                         page_break__isnull=True,
                         markup__isnull=True,
                     )
                     | models.Q(
                         field_type=PollFieldType.PAGE_BREAK,
                         question__isnull=True,
-                        page_break__isnull=False,
                         markup__isnull=True,
                     )
                     | models.Q(
                         field_type=PollFieldType.MARKUP,
                         question__isnull=True,
                         page_break__isnull=True,
-                        markup__isnull=False,
+                    )
+                    | models.Q(
+                        question__isnull=True,
+                        page_break__isnull=True,
+                        markup__isnull=True,
                     )
                 ),
-            )
+            ),
         ]
 
     def clean(self):
+        """
+        Validate data before it hits database.
+        Sends Validation Error before database sends Integrety Error,
+        has better UX.
+        """
+        # Check union fields
         nonnull_fields = [
-            field
-            for field in [self.question, self.page_break, self.markup]
-            if field is not None
+            field[1]
+            for field in [
+                (self.question, "question"),
+                (self.page_break, "page break"),
+                (self.markup, "markup"),
+            ]
+            if field[0] is not None
         ]
 
         if len(nonnull_fields) > 1:
             raise exceptions.ValidationError(
                 f'Cannot set fields {", ".join(nonnull_fields)} at the same time.'
+            )
+
+        # Check order field
+        order_query = PollField.objects.filter(poll=self.poll, order=self.order)
+        if order_query.count() > 1:
+            raise exceptions.ValidationError(
+                f"Multiple fields are set to order {self.order}."
             )
 
         return super().clean()

@@ -99,4 +99,4 @@ class AuthViewsTestsBase(ViewTestsBase):
         self.user = create_test_adminuser()
 
         self.client = APIClient()
-        self.client.force_login(user=self.user)
+        self.client.force_authenticate(user=self.user)

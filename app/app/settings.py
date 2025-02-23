@@ -69,7 +69,7 @@ INSTALLED_APPS = [
     "users.authentication",
     "analytics",
     "clubs",
-    # "clubs.polls",
+    "clubs.polls",
 ]
 
 MIDDLEWARE = [
