@@ -11,6 +11,7 @@ from clubs.polls.models import (
     ChoiceInputOption,
     Poll,
     PollField,
+    PollInputType,
     PollMarkup,
     PollQuestion,
     PollSubmission,
@@ -85,6 +86,18 @@ class PollQuestionAdmin(admin.ModelAdmin):
         RangeInputInlineAdmin,
         UploadInputInlineAdmin,
     )
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+
+        if obj.input_type == PollInputType.TEXT and obj.text_input is None:
+            TextInput.objects.create(question=obj)
+        elif obj.input_type == PollInputType.CHOICE and obj.choice_input is None:
+            ChoiceInput.objects.create(question=obj)
+        elif obj.input_type == PollInputType.RANGE and obj.range_input is None:
+            RangeInput.objects.create(question=obj)
+        elif obj.input_type == PollInputType.UPLOAD and obj.upload_input is None:
+            UploadInput.objects.create(question=obj)
 
 
 class ChoiceOptionInlineAdmin(admin.TabularInline):
