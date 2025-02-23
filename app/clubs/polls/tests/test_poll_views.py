@@ -4,7 +4,6 @@ from clubs.polls.models import (
     Poll,
     PollField,
     PollMarkup,
-    PollPageBreak,
     PollQuestion,
     RangeInput,
     TextInput,
@@ -171,5 +170,4 @@ class PollViewAuthTests(AuthViewsTestsBase):
         self.assertEqual(ChoiceInput.objects.count(), 2)
         self.assertEqual(RangeInput.objects.count(), 1)
         self.assertEqual(UploadInput.objects.count(), 1)
-        self.assertEqual(PollPageBreak.objects.count(), 1)
         self.assertEqual(PollMarkup.objects.count(), 1)

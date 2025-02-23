@@ -16,7 +16,8 @@ class TextInputNestedSerializer(ModelSerializerBase):
 
     class Meta:
         model = models.TextInput
-        fields = ["id", "text_type", "min_length", "max_length"]
+        fields = ["id", "text_type", "min_length", "max_length", "question"]
+        extra_kwargs = {"question": {"required": False}}
 
 
 class ChoiceInputOptionNestedSerializer(ModelSerializerBase):
@@ -36,7 +37,8 @@ class ChoiceInputNestedSerializer(ModelSerializerBase):
 
     class Meta:
         model = models.ChoiceInput
-        fields = ["id", "options"]
+        fields = ["id", "options", "question"]
+        extra_kwargs = {"question": {"required": False}}
 
 
 class RangeInputNestedSerializer(ModelSerializerBase):
@@ -44,7 +46,16 @@ class RangeInputNestedSerializer(ModelSerializerBase):
 
     class Meta:
         model = models.RangeInput
-        fields = ["id", "min_value", "max_value", "step", "initial_value", "unit"]
+        fields = [
+            "id",
+            "min_value",
+            "max_value",
+            "step",
+            "initial_value",
+            "unit",
+            "question",
+        ]
+        extra_kwargs = {"question": {"required": False}}
 
 
 class UploadInputNestedSerializer(ModelSerializerBase):
@@ -54,7 +65,8 @@ class UploadInputNestedSerializer(ModelSerializerBase):
 
     class Meta:
         model = models.UploadInput
-        fields = ["id", "file_types", "max_files"]
+        fields = ["id", "file_types", "max_files", "question"]
+        extra_kwargs = {"question": {"required": False}}
 
 
 class PollQuestionNestedSerializer(ModelSerializerBase):
@@ -71,6 +83,7 @@ class PollQuestionNestedSerializer(ModelSerializerBase):
     class Meta:
         model = models.PollQuestion
         exclude = ["created_at", "updated_at"]
+        extra_kwargs = {"field": {"required": False}}
 
     def create(self, validated_data):
         """Create question with nested inputs."""
@@ -80,27 +93,27 @@ class PollQuestionNestedSerializer(ModelSerializerBase):
         range_input = validated_data.pop("range_input", None)
         upload_input = validated_data.pop("upload_input", None)
 
+        question = super().create(validated_data)
+
         if text_input:
-            text_input = models.TextInput.objects.create(**text_input)
-            validated_data["text_input"] = text_input
+            models.TextInput.objects.create(**text_input, question=question)
 
         if choice_input:
             options = choice_input.pop("options")
-            choice_input = models.ChoiceInput.objects.create(**choice_input)
-            validated_data["choice_input"] = choice_input
+            choice_input = models.ChoiceInput.objects.create(
+                **choice_input, question=question
+            )
 
             for option in options:
                 models.ChoiceInputOption.objects.create(input=choice_input, **option)
 
         if range_input:
-            range_input = models.RangeInput.objects.create(**range_input)
-            validated_data["range_input"] = range_input
+            models.RangeInput.objects.create(**range_input, question=question)
 
         if upload_input:
-            upload_input = models.UploadInput.objects.create(**upload_input)
-            validated_data["upload_input"] = upload_input
+            models.UploadInput.objects.create(**upload_input, question=question)
 
-        return super().create(validated_data)
+        return question
 
 
 class PollMarkupNestedSerializer(ModelSerializerBase):
@@ -108,15 +121,8 @@ class PollMarkupNestedSerializer(ModelSerializerBase):
 
     class Meta:
         model = models.PollMarkup
-        fields = ["id", "content"]
-
-
-class PollPageBreakNestedSerializer(ModelSerializerBase):
-    """Show page breaks in poll field json."""
-
-    class Meta:
-        model = models.PollPageBreak
-        fields = ["id"]
+        fields = ["id", "content", "field"]
+        extra_kwargs = {"field": {"required": False}}
 
 
 class PollFieldNestedSerializer(ModelSerializerBase):
@@ -124,11 +130,10 @@ class PollFieldNestedSerializer(ModelSerializerBase):
 
     question = PollQuestionNestedSerializer(required=False)
     markup = PollMarkupNestedSerializer(required=False)
-    page_break = PollPageBreakNestedSerializer(required=False)
 
     class Meta:
         model = models.PollField
-        fields = ["id", "field_type", "order", "question", "page_break", "markup"]
+        fields = ["id", "field_type", "order", "question", "markup"]
 
 
 class PollSerializer(ModelSerializer):
@@ -147,29 +152,24 @@ class PollSerializer(ModelSerializer):
         fields = validated_data.pop("fields")
         poll = super().create(validated_data)
 
-        for field in fields:
-            question = field.pop("question", None)
-            markup = field.pop("markup", None)
-            page_break = field.pop("page_break", None)
+        for field_data in fields:
+            question = field_data.pop("question", None)
+            markup = field_data.pop("markup", None)
+
+            field = models.PollField.objects.create(poll=poll, **field_data)
 
             if question:
-                serializer = PollQuestionNestedSerializer(data=question)
+                serializer = PollQuestionNestedSerializer(
+                    data={**question, "field": field.id}
+                )
                 serializer.is_valid(raise_exception=True)
-
-                field["question"] = serializer.save()
+                serializer.save()
 
             if markup:
-                serializer = PollMarkupNestedSerializer(data=markup)
+                serializer = PollMarkupNestedSerializer(
+                    data={**markup, "field": field.id}
+                )
                 serializer.is_valid(raise_exception=True)
-
-                field["markup"] = serializer.save()
-
-            if page_break:
-                serializer = PollPageBreakNestedSerializer(data=page_break)
-                serializer.is_valid(raise_exception=True)
-
-                field["page_break"] = serializer.save()
-
-            models.PollField.objects.create(poll=poll, **field)
+                serializer.save()
 
         return poll

@@ -1,8 +1,6 @@
-from django.core import exceptions
 from clubs.polls.models import (
     Poll,
     PollField,
-    PollPageBreak,
     PollQuestion,
     PollInputType,
     TextInput,
@@ -18,23 +16,12 @@ class PollModelTests(TestsBase):
         """Should create a new poll with fields."""
 
         poll = Poll.objects.create(name=fake.title(), description=fake.paragraph())
-        question = PollQuestion.objects.create(
-            label="Example question", input_type=PollInputType.TEXT
+        field = PollField.objects.create(poll=poll, order=0)
+        PollQuestion.objects.create(
+            field=field,
+            label="Example question",
+            input_type=PollInputType.TEXT,
+            create_input=True,
         )
-        PollField.objects.create(poll=poll, question=question, order=0)
 
         self.assertEqual(TextInput.objects.count(), 1)
-
-    def test_poll_field_union(self):
-        """Poll field should only be one of question, markup, or page break."""
-
-        poll = Poll.objects.create(name=fake.title(), description=fake.paragraph())
-        question = PollQuestion.objects.create(
-            label="Example question", input_type=PollInputType.TEXT
-        )
-        page_break = PollPageBreak.objects.create()
-
-        with self.assertRaises(exceptions.ValidationError):
-            PollField.objects.create(
-                poll=poll, question=question, page_break=page_break, order=0
-            )
