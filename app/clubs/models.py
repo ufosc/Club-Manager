@@ -194,6 +194,22 @@ class ClubMembership(ModelBase):
         return super().clean()
 
 
+class TeamAccessType(models.TextChoices):
+    """Define team access."""
+
+    OPEN = "open"
+    """Any one can join."""
+
+    TEAM = "team"
+    """Org and team admins can assign."""
+
+    ORG = "org"
+    """Only org admins can assign."""
+
+    CLOSED = "closed"
+    """No one can join."""
+
+
 class Team(ModelBase):
     """Smaller groups within clubs."""
 
@@ -202,6 +218,10 @@ class Team(ModelBase):
 
     name = models.CharField(max_length=64)
     points = models.IntegerField(default=0, blank=True)
+
+    access = models.CharField(
+        choices=TeamAccessType.choices, default=TeamAccessType.OPEN
+    )
 
     # Foreign Relationships
     memberships: models.QuerySet["TeamMembership"]

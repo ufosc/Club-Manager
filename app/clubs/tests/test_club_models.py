@@ -3,7 +3,6 @@ Unit tests for generic model functions, validation, etc.
 """
 
 from django.core import exceptions
-from django.db import IntegrityError
 from django.urls import reverse
 
 from analytics.models import Link
@@ -119,7 +118,7 @@ class ClubTeamTests(TestsBase):
 
         Team.objects.create(name="Example Team", club=club)
 
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(exceptions.ValidationError):
             Team.objects.create(name="Example Team", club=club)
 
     def test_no_dup_users_per_club(self):
@@ -132,5 +131,5 @@ class ClubTeamTests(TestsBase):
         ClubMembership.objects.create(club=club, user=user)
         TeamMembership.objects.create(team=team, user=user)
 
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(exceptions.ValidationError):
             TeamMembership.objects.create(team=team, user=user)

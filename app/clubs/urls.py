@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 from django.views.generic import TemplateView
 
 from . import views
@@ -23,4 +23,5 @@ urlpatterns = [
         ),
         name="join-event-done",
     ),
+    path("polls/", include("clubs.polls.urls")),
 ]
