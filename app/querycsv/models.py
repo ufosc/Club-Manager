@@ -64,7 +64,7 @@ class QueryCsvUploadJobManager(ManagerBase["QueryCsvUploadJob"]):
 class QueryCsvUploadJob(ModelBase):
     """Used to store meta info about csvs from querysets."""
 
-    validate_import_string = ValidateImportString(target_type=serializers.Serializer)
+    validate_import_string = ValidateImportString(target_type=CsvModelSerializer)
     csv_upload_path = UploadFilepathFactory(
         path=QUERYCSV_MEDIA_SUBDIR + "uploads/", default_extension="csv"
     )

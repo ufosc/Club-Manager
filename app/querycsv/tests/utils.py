@@ -153,9 +153,9 @@ class CsvDataTestsBase(TestsBase):
 
     # Custom assertions
     #####################
-    def assertObjectsCount(self, count: int):
+    def assertObjectsCount(self, count: int, msg=None):
         """Objects count in db should match given count."""
-        self.assertEqual(self.repo.count(), count)
+        self.assertEqual(self.repo.count(), count, msg=msg)
 
     def assertNoObjects(self):
         """Database should be empty."""
@@ -255,8 +255,8 @@ class CsvDataM2OTestsBase(CsvDataTestsBase):
                     k: v
                     for k, v in query.items()
                     if k != self.m2o_selector
-                    and k not in self.serializer.readonly_field_names
-                    and k not in self.serializer.any_related_field_names
+                    and k not in self.serializer.readonly_fields
+                    and k not in self.serializer.any_related_fields
                 }
             )
 
@@ -364,7 +364,7 @@ class CsvDataM2MTestsBase(CsvDataTestsBase):
                 # Skip fields if they represent object, are none, or are for the serializer only
                 if (
                     key == self.m2m_selector
-                    or key in self.serializer.readonly_field_names
+                    or key in self.serializer.readonly_fields
                     or value is None
                     or key not in self.model_class.get_fields_list()
                 ):
@@ -440,7 +440,7 @@ class DownloadCsvTestsBase(CsvDataTestsBase):
 
                 actual_value = record[field]
 
-                if field in self.serializer.many_related_field_names:
+                if field in self.serializer.many_related_fields:
                     actual_values = [
                         val.strip() for val in str(actual_value).split(",")
                     ]
@@ -518,13 +518,13 @@ class UploadCsvTestsBase(CsvDataTestsBase):
         self.repo.all().delete()
         self.assertNoObjects()
 
-    def assertObjectsExist(self, pre_queryset: list):
+    def assertObjectsExist(self, pre_queryset: list, msg=None):
         """Objects represented in queryset should exist in the database."""
-        self.assertObjectsCount(self.dataset_size)
+        self.assertObjectsCount(self.dataset_size, msg=msg)
 
         for expected_obj in pre_queryset:
             query = self.repo.filter(**expected_obj)
-            self.assertTrue(query.exists())
+            self.assertTrue(query.exists(), msg=msg)
 
     def assertObjectsHaveFields(self, expected_objects: list[dict]):
         """
@@ -542,8 +542,8 @@ class UploadCsvTestsBase(CsvDataTestsBase):
             query = {
                 k: v
                 for k, v in expected_obj.items()
-                if k in self.serializer.writable_field_names
-                and k not in self.serializer.any_related_field_names
+                if k in self.serializer.writable_fields
+                and k not in self.serializer.any_related_fields
                 and k in self.model_class.get_fields_list()
                 and v is not None
             }
@@ -557,7 +557,7 @@ class UploadCsvTestsBase(CsvDataTestsBase):
             actual_object = self.repo.get(**query)
             actual_serializer = self.serializer_class(actual_object)
 
-            for field in self.serializer.writable_field_names:
+            for field in self.serializer.writable_fields:
                 if (
                     field not in expected_serializer.data.keys()
                     and field not in actual_serializer.data.keys()

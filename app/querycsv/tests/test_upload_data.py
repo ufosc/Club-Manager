@@ -24,10 +24,10 @@ class UploadDataTests(UploadCsvTestsBase):
         objects_before = self.initialize_csv_data()
 
         # Call service upload function
-        self.service.upload_csv(path=self.filepath)
+        _, failed = self.service.upload_csv(path=self.filepath)
 
         # Validate database
-        self.assertObjectsExist(objects_before)
+        self.assertObjectsExist(objects_before, failed)
         self.assertObjectsHaveFields(objects_before)
 
     def test_update_objects_from_csv(self):
@@ -260,7 +260,7 @@ class UploadCsvM2MFieldsTests(UploadCsvTestsBase, CsvDataM2MTestsBase):
         )
 
         # Upload csv using service
-        self.service.upload_csv(path=self.filepath)
+        success, failed = self.service.upload_csv(path=self.filepath)
 
         # Validate results
         self.assertEqual(self.repo.all().count(), self.dataset_size)

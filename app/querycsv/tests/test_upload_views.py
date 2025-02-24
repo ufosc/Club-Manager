@@ -46,10 +46,10 @@ class UploadCsvViewsTests(UploadCsvTestsBase):
         self.assertEqual(
             res.context_data["template_url"], self.get_reverse("csv_template")
         )
-        self.assertEqual(res.context_data["all_fields"], self.service.get_flat_fields())
+        self.assertEqual(res.context_data["all_fields"], self.service.flat_fields)
         self.assertEqual(
             res.context_data["unique_together_fields"],
-            self.serializer.unique_together_field_names,
+            self.serializer.unique_together_fields,
         )
 
     def test_map_upload_csv_headers_get(self):

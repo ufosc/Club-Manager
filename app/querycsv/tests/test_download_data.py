@@ -27,7 +27,7 @@ class DownloadDataTests(DownloadCsvTestsBase):
         df = self.csv_to_df(filepath)
         self.assertEqual(len(df.index), self.dataset_size)
 
-        expected_fields = self.serializer.readable_field_names
+        expected_fields = self.serializer.readable_fields
         expected_fields.sort()
 
         actual_fields = list(df.columns)

@@ -54,6 +54,49 @@ class SerializerBase(serializers.Serializer):
             if value.required is True and value.read_only is False
         ]
 
+    def get_field_types(self, field_name: str, serializer=None) -> list[FieldType]:
+        """Get ``FieldType`` for a given field."""
+        serializer = serializer if serializer is not None else self
+
+        field_types = []
+
+        if field_name in serializer.writable_fields:
+            field_types.append(FieldType.WRITABLE)
+
+        if field_name in serializer.readonly_fields:
+            field_types.append(FieldType.READONLY)
+
+        if field_name in serializer.required_fields:
+            field_types.append(FieldType.REQUIRED)
+
+        if field_name in serializer.unique_fields:
+            field_types.append(FieldType.UNIQUE)
+
+        return field_types
+
+
+class ModelSerializerBase(serializers.ModelSerializer):
+    """Default functionality for model serializer."""
+
+    datetime_format = SerializerBase.datetime_format
+
+    id = serializers.IntegerField(label="ID", read_only=True)
+    created_at = serializers.DateTimeField(
+        format=datetime_format, read_only=True, required=False, allow_null=True
+    )
+    updated_at = serializers.DateTimeField(
+        format=datetime_format, read_only=True, required=False, allow_null=True
+    )
+
+    default_fields = ["id", "created_at", "updated_at"]
+
+    class Meta:
+        model = None
+
+    @property
+    def model_class(self) -> Type[models.Model]:
+        return self.Meta.model
+
     @property
     def unique_fields(self) -> list[str]:
         """Get list of all fields that can be used to unique identify models."""
@@ -94,48 +137,17 @@ class SerializerBase(serializers.Serializer):
 
         return self.related_fields + self.many_related_fields
 
-    def get_field_types(self, field_name: str, serializer=None) -> list[FieldType]:
-        """Get ``FieldType`` for a given field."""
-        serializer = serializer if serializer is not None else self
-
-        field_types = []
-
-        if field_name in serializer.writable_fields:
-            field_types.append(FieldType.WRITABLE)
-
-        if field_name in serializer.readonly_fields:
-            field_types.append(FieldType.READONLY)
-
-        if field_name in serializer.required_fields:
-            field_types.append(FieldType.REQUIRED)
-
-        if field_name in serializer.unique_fields:
-            field_types.append(FieldType.UNIQUE)
-
-        return field_types
-
-
-class ModelSerializerBase(serializers.ModelSerializer):
-    """Default functionality for model serializer."""
-
-    datetime_format = SerializerBase.datetime_format
-
-    id = serializers.IntegerField(label="ID", read_only=True)
-    created_at = serializers.DateTimeField(
-        format=datetime_format, read_only=True, required=False, allow_null=True
-    )
-    updated_at = serializers.DateTimeField(
-        format=datetime_format, read_only=True, required=False, allow_null=True
-    )
-
-    default_fields = ["id", "created_at", "updated_at"]
-
     @property
-    def model_class(self) -> Type[models.Model]:
-        return self.Meta.model
+    def unique_together_fields(self):
+        """List of tuples of fields that must be unique together."""
 
-    class Meta:
-        model = None
+        constraints = self.model_class._meta.constraints
+
+        return [
+            constraint.fields
+            for constraint in constraints
+            if isinstance(constraint, models.UniqueConstraint)
+        ]
 
 
 class ModelSerializer(ModelSerializerBase):

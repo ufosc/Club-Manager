@@ -49,7 +49,15 @@ class ValidateImportString(object):
 
     def __call__(self, text: str):
         symbol = import_from_path(text)
-        assert isinstance(
+        # print(
+        #     "symbol:",
+        #     symbol,
+        #     " target type:",
+        #     self.target_type,
+        #     " is instance:",
+        #     isinstance(symbol, self.target_type),
+        # )
+        assert issubclass(
             symbol, self.target_type
         ), f"Imported object needs to be of type {self.target_type}, but got {type(symbol)}."
 

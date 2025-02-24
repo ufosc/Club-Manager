@@ -38,9 +38,9 @@ class QueryCsvViewSet:
         context = extra_context if extra_context else {}
 
         context["template_url"] = self.get_reverse("csv_template")
-        context["all_fields"] = self.service.get_flat_fields()
+        context["all_fields"] = self.service.flat_fields
         context["unique_together_fields"] = (
-            self.serializer_class().unique_together_field_names
+            self.serializer_class().unique_together_fields
         )
 
         # Not able to upload csv if no serializer is set
@@ -116,7 +116,7 @@ class QueryCsvViewSet:
             for header in job.csv_headers:
                 cleaned_header = header.strip().lower().replace(" ", "_")
                 # if cleaned_header in self.serializer.all_field_names:
-                if cleaned_header in self.service.get_flat_fields():
+                if cleaned_header in self.service.flat_fields.keys():
                     initial_mapping = {
                         "csv_header": header,
                         "object_field": cleaned_header,

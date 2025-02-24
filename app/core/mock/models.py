@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 
 from core.abstracts.models import ModelBase
@@ -16,6 +17,7 @@ class Buster(ModelBase):
     """
 
     name = models.CharField()
+    unique_name = models.CharField(unique=True, default=uuid.uuid4)
     one_tag = models.ForeignKey(
         BusterTag, on_delete=models.SET_NULL, null=True, blank=True
     )

@@ -1,4 +1,3 @@
-from core.abstracts.serializers import ModelSerializerBase
 from core.mock.models import Buster, BusterTag
 from querycsv.serializers import CsvModelSerializer, WritableSlugRelatedField
 
@@ -28,7 +27,7 @@ class BusterCsvSerializer(CsvModelSerializer):
         allow_null=True,
     )
 
-    class Meta(ModelSerializerBase.Meta):
+    class Meta(CsvModelSerializer.Meta):
         model = Buster
         fields = [
             "id",

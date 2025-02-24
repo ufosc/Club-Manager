@@ -86,6 +86,14 @@ class FlatListField(FlatField):
             self.key += f".{self.sub_key}"
 
 
+class FlatListSerializer(serializers.ListSerializer):
+    """Extend default list serializer."""
+
+    @property
+    def flat_data(self):
+        return [FlatSerializer.json_to_flat(data) for data in self.data]
+
+
 class FlatSerializer(SerializerBase):
     """Convert between json data and flattened data."""
 
@@ -96,6 +104,9 @@ class FlatSerializer(SerializerBase):
         nested_data = self.flat_to_json(data)
 
         super().__init__(instance, data=nested_data, **kwargs)
+
+    class Meta:
+        list_serializer_class = FlatListSerializer
 
     ##############################
     # == Serializer Functions == #
@@ -170,9 +181,13 @@ class FlatSerializer(SerializerBase):
 
                 # TODO: Recurse for deeply nested objects
                 parsed[field][index][nested_field] = value
-            elif key in cls.writable_many_related_fields:
+            elif key in cls().writable_many_related_fields and isinstance(value, str):
                 # Handle list of literals
-                parsed[key] = str_to_list(str(value))
+                parsed[key] = str_to_list(value)
+            elif key in cls().writable_many_related_fields and not isinstance(
+                value, list
+            ):
+                parsed[key] = [value]
             else:
                 # Handle objects
                 # TODO: CSV Objects
@@ -231,7 +246,7 @@ class FlatSerializer(SerializerBase):
         return flat_fields
 
 
-class CsvModelSerializer(ModelSerializerBase, FlatSerializer):
+class CsvModelSerializer(FlatSerializer, ModelSerializerBase):
     """Convert fields to csv columns."""
 
     def __init__(self, instance=None, data=empty, **kwargs):
@@ -240,6 +255,22 @@ class CsvModelSerializer(ModelSerializerBase, FlatSerializer):
         # Skip if data is empty
         if data is None:
             return super().__init__(instance=instance, **kwargs)
+
+        # Coerce Slug Many Related Field to a list before processing
+        # TODO: This should be handled entirely by flat_to_json
+        try:
+            fields = [
+                field
+                for field in self.writable_many_related_fields
+                if field in data.keys()
+            ]
+
+            for field in fields:
+                if isinstance(data[field], str):
+                    data[field] = str_to_list(data[field])
+
+        except Exception:
+            pass
 
         # Initialize rest of serializer first, needed if data is flat
         super().__init__(data=data, **kwargs)

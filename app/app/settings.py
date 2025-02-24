@@ -304,7 +304,12 @@ if DEBUG:
 
 
 if TESTING:
-    INSTALLED_APPS.append("core.mock")
+    # Ensure tasks execute immediately
+    CELERY_TASK_ALWAYS_EAGER = True
 
     # Force disable notifications
     EMAIL_HOST_PASSWORD = None
+
+if DEV or TESTING:
+    # Allow for migrations during dev mode
+    INSTALLED_APPS.append("core.mock")

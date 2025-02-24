@@ -44,6 +44,7 @@ services:
       - DJANGO_REDIS_URL=redis://clubs-dev-redis:6379/1
     depends_on:
       - postgres
+      - redis
 
   postgres:
     image: postgres:13-alpine

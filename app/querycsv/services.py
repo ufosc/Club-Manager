@@ -4,7 +4,6 @@ from typing import Literal, Optional, OrderedDict, Type, TypedDict
 
 import pandas as pd
 from django.db import models
-from rest_framework.relations import ManyRelatedField
 
 from core.abstracts.serializers import ModelSerializerBase
 from querycsv.consts import QUERYCSV_MEDIA_SUBDIR
@@ -29,7 +28,7 @@ class QueryCsvService:
     def __init__(self, serializer_class: Type[CsvModelSerializer]):
         self.serializer_class = serializer_class
         self.serializer = serializer_class()
-        self.model_name = self.serializer_class.model_class.__name__
+        self.model_name = self.serializer.model_class.__name__
 
         self.fields: OrderedDict = self.serializer.get_fields()
         self.readonly_fields = self.serializer.readonly_fields
@@ -167,11 +166,11 @@ class QueryCsvService:
                 df.rename(columns={mapping["column_name"]: str(field)}, inplace=True)
 
         # Normalize & clean fields before conversion to dict
-        for field_name, field_type in self.serializer.get_fields().items():
+        for field_name, field_type in self.serializer.get_flat_fields().items():
             if field_name not in list(df.columns):
                 continue
 
-            if isinstance(field_type, ManyRelatedField):
+            if field_type.is_list_item:
                 df[field_name] = df[field_name].map(
                     lambda val: [
                         item for item in str(val).split(",") if str(item) != ""
