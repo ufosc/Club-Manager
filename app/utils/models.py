@@ -1,14 +1,15 @@
 import os
+from pathlib import Path
 import uuid
 
+from django.core.files import File
 from django.db import models
 from django.db.models.fields.related_descriptors import ReverseOneToOneDescriptor
 from django.utils.deconstruct import deconstructible
 from rest_framework.fields import ObjectDoesNotExist
 
+from utils.helpers import import_from_path
 from utils.types import T
-
-# from utils.types import T
 
 
 @deconstructible
@@ -22,15 +23,35 @@ class UploadFilepathFactory(object):
             Ex: "/user/profile/" -> "/media/uploads/user/profile/"
     """
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, default_extension=None):
         self.path = path
+        self.default_extension = default_extension
 
     def __call__(self, instance, filename):
-        extension = filename.split(".")[-1]
-        filename = "{}.{}".format(uuid.uuid4().hex, extension)
+        if "." in filename:
+            extension = filename.split(".")[-1]
+        else:
+            extension = self.default_extension or ""
 
+        filename = "{}.{}".format(uuid.uuid4().hex, extension)
         nested_dirs = [dirname for dirname in self.path.split("/") if dirname]
         return os.path.join("uploads", *nested_dirs, filename)
+
+
+@deconstructible
+class ValidateImportString(object):
+    """
+    Validate that a given string can be imported using the `import_from_path` function.
+    """
+
+    def __init__(self, target_type=None) -> None:
+        self.target_type = target_type
+
+    def __call__(self, text: str):
+        symbol = import_from_path(text)
+        assert isinstance(
+            symbol, self.target_type
+        ), f"Imported object needs to be of type {self.target_type}, but got {type(symbol)}."
 
 
 class ReverseOneToOneOrNoneDescriptor(ReverseOneToOneDescriptor):
@@ -51,3 +72,18 @@ class OneToOneOrNoneField(models.OneToOneField[T]):
     """  # noqa: E501
 
     related_accessor_class = ReverseOneToOneOrNoneDescriptor
+
+
+def save_file_to_model(model: models.Model, filepath, field="file"):
+    """
+    Given file path, save a file to a given model.
+
+    This abstracts the process of opening the file and
+    copying over the file data.
+    """
+    path = Path(filepath)
+
+    with path.open(mode="rb") as f:
+        file = File(f, name=path.name)
+        setattr(model, field, file)
+        model.save()
