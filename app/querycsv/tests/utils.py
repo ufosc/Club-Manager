@@ -34,6 +34,7 @@ class CsvDataTestsBase(TestsBase):
 
     Optional:
         - dataset_size
+        - unique_field
 
     Terms
     -----
@@ -124,13 +125,14 @@ class CsvDataTestsBase(TestsBase):
 
     def data_to_df(self, data: list[dict]):
         """Convert output of serializer to dataframe."""
+        data_copy = [{**obj} for obj in data]
 
-        for model in data:
+        for model in data_copy:
             for key, value in model.items():
                 if isinstance(value, list):
                     model[key] = ",".join([str(v) for v in value])
 
-        return pd.DataFrame.from_records(data)
+        return pd.DataFrame.from_records(data_copy)
 
     def data_to_csv(self, data: list[dict]):
         """Convert list of dicts to a csv, return filepath."""
@@ -181,6 +183,7 @@ class CsvDataM2OTestsBase(CsvDataTestsBase):
 
     Optional:
         - dataset_size
+        - unique_field
         - m2o_size
         - def create_mock_objects
     """
@@ -284,6 +287,7 @@ class CsvDataM2MTestsBase(CsvDataTestsBase):
 
     Optional:
         - dataset_size
+        - unique_field
         - m2m_size
         - m2m_update_size
     """
@@ -401,6 +405,7 @@ class DownloadCsvTestsBase(CsvDataTestsBase):
         - def get_update_params
 
     Optional:
+        - unique_field
         - dataset_size
 
     Terms
@@ -470,9 +475,7 @@ class UploadCsvTestsBase(CsvDataTestsBase):
 
     Optional:
         - dataset_size
-        - def create_mock_object # Calls get_create_params by default
-        - def create_mock_objects
-        - def update_mock_object # Calls get_update_params by default
+        - unique_field
     """
 
     def setUp(self) -> None:

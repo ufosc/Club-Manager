@@ -14,8 +14,22 @@ from querycsv.tests.utils import (
 )
 
 
-class UploadDataTests(UploadCsvTestsBase):
-    """Test uploading data from a csv."""
+class UploadCsvTests(UploadCsvTestsBase):
+    """
+    Test uploading data from a csv.
+
+    Overrides
+    ---------
+    Required:
+        - model_class
+        - serializer_class
+        - def get_create_params
+        - def get_update_params
+
+    Optional:
+        - dataset_size
+        - unique_field
+    """
 
     def test_create_objects_from_csv(self):
         """Should be able to take csv and create models."""

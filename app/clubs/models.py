@@ -152,7 +152,7 @@ class ClubMembership(ModelBase):
 
     owner = models.BooleanField(default=False, blank=True)
     points = models.IntegerField(default=0, blank=True)
-    roles = models.ManyToManyField(ClubRole)
+    roles = models.ManyToManyField(ClubRole, blank=True)
 
     # Foreign Relationships
     teams: models.QuerySet["Team"]
