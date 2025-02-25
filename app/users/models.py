@@ -10,10 +10,10 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from core.abstracts.models import ManagerBase, ModelBase, UniqueModel
 from utils.models import UploadFilepathFactory
-from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager, ManagerBase["User"]):
