@@ -110,8 +110,14 @@ class FlatSerializer(SerializerBase):
         return [
             key
             for key, value in self.get_fields().items()
-            if isinstance(value, serializers.ManyRelatedField)
-            and isinstance(value.child_relation, WritableSlugRelatedField)
+            if (
+                isinstance(value, serializers.ManyRelatedField)
+                and isinstance(value.child_relation, WritableSlugRelatedField)
+            )
+            or (
+                isinstance(value, serializers.ManyRelatedField)
+                and value.read_only is False
+            )
         ]
 
     @property
@@ -302,14 +308,26 @@ class CsvModelSerializer(FlatSerializer, ModelSerializerBase):
 
 
 class WritableSlugRelatedField(SlugRelatedField):
-    """Wraps slug related field and creates object if not found."""
+    """
+    Wraps slug related field and creates object if not found.
+
+    Optionally, provide ``extra_kwargs`` to add extra fields when
+    an object is retrieved or created.
+    """
+
+    def __init__(self, slug_field=None, extra_kwargs=None, **kwargs):
+        super().__init__(slug_field, **kwargs)
+
+        self.extra_kwargs = extra_kwargs or {}
 
     def to_internal_value(self, data):
         """Overrides default behavior to create if not found."""
         queryset = self.get_queryset()
 
         try:
-            obj, _ = queryset.get_or_create(**{self.slug_field: data})
+            obj, _ = queryset.get_or_create(
+                **{self.slug_field: data}, **self.extra_kwargs
+            )
             return obj
-        except (TypeError, ValueError):
-            self.fail("invalid")
+        except (TypeError, ValueError) as e:
+            print(e)

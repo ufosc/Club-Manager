@@ -1,6 +1,6 @@
 import pandas as pd
 from celery import shared_task
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
@@ -52,14 +52,22 @@ def process_csv_job_task(job_id: int):
     # Send admin email
     if job.notify_email:
         model_name = job.model_class._meta.verbose_name_plural
-        mail = EmailMessage(
+        mail = EmailMultiAlternatives(
             subject=f"Upload {model_name} report",
             to=[job.notify_email],
             body=mark_safe(
+                f"Your {model_name} csv has finished processing. "
+                f"Objects processed successfully: {len(success)}. "
+                f"Objects unsuccessfully processed: {len(failed)}."
+            ),
+        )
+        mail.attach_alternative(
+            (
                 f"Your {model_name} csv has finished processing.<br><br>"
                 f"Objects processed successfully: {len(success)}<br>"
                 f"Objects unsuccessfully processed: {len(failed)}"
             ),
+            "text/html",
         )
         mail.attach_file(report_file_path)
         mail.send()
