@@ -97,6 +97,7 @@ TEMPLATES = [
         "DIRS": [
             os.path.join(BASE_DIR, "templates"),
             os.path.join(BASE_DIR, "core/templates"),
+            os.path.join(BASE_DIR, "dashboard/templates"),
         ],
         # "APP_DIRS": True,
         "OPTIONS": {

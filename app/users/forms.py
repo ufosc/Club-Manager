@@ -6,11 +6,11 @@ from clubs.models import Club, Event
 class AuthForm(forms.Form):
     """Base fields for all auth forms."""
 
-    password = forms.CharField(widget=forms.PasswordInput())
-    event = forms.ModelChoiceField(
+    password = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'field-text', 'placeholder': 'Password'}))
+    event = forms.ModelChoiceField(label='event',
         widget=forms.HiddenInput(), queryset=Event.objects.all(), required=False
     )
-    club = forms.ModelChoiceField(
+    club = forms.ModelChoiceField(label='club',
         widget=forms.HiddenInput(), queryset=Club.objects.all(), required=False
     )
 
@@ -18,7 +18,7 @@ class AuthForm(forms.Form):
 class LoginForm(AuthForm):
     """Allow members to authenticate with the club system."""
 
-    username = forms.CharField(help_text="Username or Email")
+    username = forms.CharField(label='username', help_text="Username or Email", widget=forms.TextInput(attrs={'class': 'field-text', 'placeholder': 'Username'}))
 
     field_order = ["username", "password", "event", "club"]
 
@@ -26,10 +26,10 @@ class LoginForm(AuthForm):
 class RegisterForm(AuthForm):
     """New members can create accounts with the system."""
 
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    email = forms.EmailField()
+    first_name = forms.CharField(label='first_name', widget=forms.TextInput(attrs={'class': 'field-text', 'placeholder': 'First Name'}))
+    last_name = forms.CharField(label='last_name', widget=forms.TextInput(attrs={'class': 'field-text', 'placeholder': 'Last Name'}))
+    email = forms.EmailField(label='email', widget=forms.TextInput(attrs={'class': 'field-text', 'placeholder': 'Email'}))
 
-    confirm_password = forms.CharField(widget=forms.PasswordInput())
+    confirm_password = forms.CharField(label='confirm-password', widget=forms.PasswordInput(attrs={'class': 'field-text', 'placeholder': 'Confirm Password'}))
 
-    field_order = ["first_name", "last_name", "email", "password", "confirm_password"]
+    field_order = ["email", "first_name", "last_name", "password", "confirm_password", "club", "event"]

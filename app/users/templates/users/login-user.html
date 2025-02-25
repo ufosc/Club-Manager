@@ -1,44 +1,48 @@
-{% extends 'base.html' %} {% block head %} {% load static %}
-<link
-  rel="stylesheet"
-  href="{% static 'css/form.css' %}"
-/>
-{% endblock %} {% block body %}
-<!-- <div class="container">
-  <form method="POST">
-    {% csrf_token %}
-    
-    {% for field in form.visible_fields %}
-    {{ field.errors }}
-    {{ field.label_tag }}
-    {{ field }}
-    <small>
-      {{ field.help_text }}
-    </small>
-    {% endfor %}
-    
-    {% for hidden in form.hidden_fields %}
-    {{ hidden }}
-    {% endfor %}
-    
-    {% for error in form.non_field_errors %}
-    <p>{{ error }}</p>
-    {% endfor %}
-    <input type="submit" value="Login">
-  </form>
-  
-</div> -->
-<div class="container">
-  <h2>Login</h2>
-  <form method="POST">
-    {% csrf_token %} {{ form }}
+{% extends 'users/form.html' %}
+{% block head %}
+{% load static %}
+<title>Login</title>
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+{% endblock %}
 
-    <input
-      type="submit"
-      value="Login"
-    />
+{% block formbody %}
+<div class="header-font header-surface">
+  Club Manager
+</div>
+<div class="container-body">
+  <div class="header-font header-black header-center">
+      Login
+  </div>
+  <div class="formBody-container">
+  <form method="POST" class="formBody">
+      {% csrf_token %}
+      <div class="input-container">
+      {% for field in form %}
+      <!---Not sure how to handle club or event fields yet-->
+      {% if field.name == "club" or field.name == "event" %}
+          <div></div>
+      {% else %}
+          <div class="input-field">
+              {{ field }}
+          </div>
+      {% endif %}
+      {% endfor %}
+      </div>
+      <input type="submit" value="Login" class="standard-font">
   </form>
-  <br>
-  <a href="{% url 'users:register' %}{% if next %}?next={{ next }}{% endif %}">Register</a>
+  </div>
+</div>
+<div class="subtext-container">
+    <div class="subtext-regular">
+        New to Club Manager?
+    </div>
+    {% url 'users:register' as userregister %}
+
+    <!-- {% url 'users:register' %}{% if next %}?next={{ next }}{% endif %} -->
+    <a href="{% url 'users:register' %}{% if next %}?next={{ next }}{% endif %}">
+    <div class="subtext-link">
+        Sign Up Now
+    </div>
+    </a>
 </div>
 {% endblock %}

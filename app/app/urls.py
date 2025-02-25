@@ -47,6 +47,7 @@ urlpatterns = [
     path("api/v1/", include(apipatterns)),
     path("users/", include("users.urls")),
     path("clubs/", include("clubs.urls")),
+    path("dashboard/", include("dashboard.urls")),
 ]
 
 if DEV:

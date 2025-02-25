@@ -10,7 +10,7 @@ from rest_framework import status
 
 from clubs.models import Club, ClubMembership, Event
 from clubs.services import ClubService
-from users.forms import RegisterForm
+from users.forms import RegisterForm, LoginForm
 from users.services import UserService
 
 
@@ -82,6 +82,66 @@ def register_user_view(request: HttpRequest):
 
     context["form"] = form
     return render(request, "users/register-user.html", context)
+
+
+def login_user_view(request: HttpRequest):
+    context = {}
+    initial_data={}
+
+    if request.POST:
+        form = LoginForm(data=request.POST)
+
+        if form.is_valid():
+            data = form.cleaned_data
+            form_data = {
+                "email": data.get("email", None),
+                "password": data.get("password", None),
+            }
+
+            UserService.login_user(request, user)
+
+            club: Club = data.get("club", None)
+            event: Event = data.get("event", None)
+
+            if "next" in request.GET:
+                return redirect(request.GET.get("next"))
+            else:
+                return redirect("clubs:available")
+        else:
+            context["form"] = form
+            return render(
+                request,
+                "users/login-user.html",
+                context,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    
+    elif request.method == "GET":
+        club_id = request.GET.get("club", None)
+        event_id = request.GET.get("event", None)
+
+        if club_id:
+            initial_data["club"] = Club.objects.find_by_id(int(club_id))
+
+        if event_id:
+            initial_data["event"] = Event.objects.find_by_id(int(event_id))
+
+        form = LoginForm(initial=initial_data)
+
+    else:
+        raise BadRequest("Method must be GET or POST.")
+
+
+    context["form"] = form
+    return render(request, "users/login-user.html", context)
+
+def reset_password(request : HttpRequest):
+    context = {}
+    context["confirmed"] = False
+    
+
+    return render(request, "users/resetpassword.html", context)
 
 
 @login_required()
