@@ -71,9 +71,9 @@
             <td>{{ field }}</td>
             <td>{% if field.help_text %}{{ field.help_text }}{% endif %}</td>
             <td>✓</td>
-            <td>{% if field.writable %}✓{% endif %}</td>
-            <td>{% if field.required %}✓{% endif %}</td>
-            <td>{% if field.unique %}✓{% endif %}</td>
+            <td>{% if field.is_writable %}✓{% endif %}</td>
+            <td>{% if field.is_required %}✓{% endif %}</td>
+            <td>{% if field.is_unique %}✓{% endif %}</td>
           </tr>
           {% endfor %}
         </tbody>

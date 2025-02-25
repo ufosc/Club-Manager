@@ -38,7 +38,7 @@ class QueryCsvViewSet:
         context = extra_context if extra_context else {}
 
         context["template_url"] = self.get_reverse("csv_template")
-        context["all_fields"] = self.service.flat_fields
+        context["all_fields"] = self.service.flat_fields.values()
         context["unique_together_fields"] = (
             self.serializer_class().unique_together_fields
         )

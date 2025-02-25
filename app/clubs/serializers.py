@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from clubs.models import Club, ClubMembership
 from core.abstracts.serializers import ModelSerializerBase
+from querycsv.serializers import CsvModelSerializer
 from users.models import User
 
 
@@ -37,6 +38,14 @@ class ClubSerializer(ModelSerializerBase):
             "logo",
             "members",
         ]
+
+
+class ClubCsvSerializer(CsvModelSerializer):
+    """Represents clubs in csvs."""
+
+    class Meta:
+        model = Club
+        fields = "__all__"
 
 
 class ClubMembershipSerializer(ModelSerializerBase):

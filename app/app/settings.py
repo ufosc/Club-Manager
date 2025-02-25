@@ -277,6 +277,14 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 # Custom schedules
 CELERY_BEAT_SCHEDULE = {}
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.environ.get("DJANGO_REDIS_URL"),
+    },
+}
+
+
 ###############################
 # == Environment Overrides == #
 ###############################

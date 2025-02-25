@@ -12,7 +12,9 @@ from clubs.models import (
     Team,
     TeamMembership,
 )
+from clubs.serializers import ClubCsvSerializer
 from clubs.services import ClubService
+from core.abstracts.admin import ModelAdminBase
 
 
 class ClubMembershipInlineAdmin(admin.StackedInline):
@@ -29,8 +31,10 @@ class ClubRoleInlineAdmin(admin.StackedInline):
     extra = 0
 
 
-class ClubAdmin(admin.ModelAdmin):
+class ClubAdmin(ModelAdminBase):
     """Admin config for Clubs."""
+
+    csv_serializer_class = ClubCsvSerializer
 
     inlines = (
         ClubRoleInlineAdmin,
