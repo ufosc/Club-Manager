@@ -10,13 +10,17 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
-from core.abstracts.models import ModelBase, UniqueModel
+from core.abstracts.models import ManagerBase, ModelBase, UniqueModel
 from utils.models import UploadFilepathFactory
 
 
-class UserManager(BaseUserManager):
+class UserManager(BaseUserManager, ManagerBase["User"]):
     """Manager for users."""
+
+    def create(self, **kwargs):
+        return self.create_user(**kwargs)
 
     def create_user(self, email, password=None, username=None, **extra_fields):
         """Create, save, and return a new user. Add user to base group."""
@@ -33,12 +37,16 @@ class UserManager(BaseUserManager):
         phone = extra_fields.pop("phone", None)
 
         user: User = self.model(username=username, email=email, **extra_fields)
-        user.set_password(password)
+
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
+
         user.is_active = True
         user.save(using=self._db)
 
         Profile.objects.create(
-            # email=email,
             user=user,
             first_name=first_name,
             last_name=last_name,
@@ -77,8 +85,9 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
-    username = models.CharField(max_length=32, unique=True)
     email = models.EmailField(max_length=32, unique=True)
+    username = models.CharField(max_length=32, unique=True, blank=True)
+    password = models.CharField(_("password"), max_length=128, blank=True)
 
     date_joined = models.DateTimeField(auto_now_add=True, editable=False, blank=True)
     date_modified = models.DateTimeField(auto_now=True, editable=False, blank=True)
@@ -110,6 +119,12 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
     # Overrides
     def __str__(self):
         return self.username
+
+    def clean(self):
+        # If user is created through some other method, ensure username is set.
+        if self.username is None or self.username == "":
+            self.username = self.email
+        return super().clean()
 
 
 class Profile(ModelBase):

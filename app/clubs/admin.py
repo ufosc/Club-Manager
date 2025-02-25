@@ -12,7 +12,9 @@ from clubs.models import (
     Team,
     TeamMembership,
 )
+from clubs.serializers import ClubCsvSerializer, ClubMembershipCsvSerializer
 from clubs.services import ClubService
+from core.abstracts.admin import ModelAdminBase
 
 
 class ClubMembershipInlineAdmin(admin.StackedInline):
@@ -29,8 +31,10 @@ class ClubRoleInlineAdmin(admin.StackedInline):
     extra = 0
 
 
-class ClubAdmin(admin.ModelAdmin):
+class ClubAdmin(ModelAdminBase):
     """Admin config for Clubs."""
+
+    csv_serializer_class = ClubCsvSerializer
 
     inlines = (
         ClubRoleInlineAdmin,
@@ -45,16 +49,6 @@ class ClubAdmin(admin.ModelAdmin):
 
     def members_count(self, obj):
         return obj.memberships.count()
-
-    def get_queryset(self, request):
-        user_club_ids = request.user.club_memberships.all().values_list("club__id")
-
-        queryset = super().get_queryset(request)
-
-        if request.user.is_superuser:
-            return queryset
-
-        return queryset.filter(id__in=user_club_ids)
 
 
 class RecurringEventAdmin(admin.ModelAdmin):
@@ -139,7 +133,24 @@ class TeamAdmin(admin.ModelAdmin):
     inlines = (TeamMembershipInlineAdmin,)
 
 
+class ClubMembershipAdmin(ModelAdminBase):
+    """Manage club memberships in admin."""
+
+    csv_serializer_class = ClubMembershipCsvSerializer
+
+    list_display = (
+        "__str__",
+        "club",
+        "club_roles",
+        "created_at",
+    )
+
+    def club_roles(self, obj):
+        return ", ".join(str(role) for role in list(obj.roles.all()))
+
+
 admin.site.register(Club, ClubAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(RecurringEvent, RecurringEventAdmin)
 admin.site.register(Team, TeamAdmin)
+admin.site.register(ClubMembership, ClubMembershipAdmin)
