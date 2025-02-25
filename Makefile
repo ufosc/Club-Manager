@@ -43,8 +43,11 @@ debug-test:
 
 debug: debug-build debug-run
 
-docker-push:
+docker-push-clubs:
 	docker buildx build --platform=linux/amd64,linux/arm64 -t ikehunter5/club-manager:latest -f ./Dockerfile . --push
+
+docker-push-proxy:
+	docker buildx build --platform=linux/amd64,linux/arm64 -t ikehunter5/club-manager-proxy:latest ./deploy/proxy --push
 	
 down:
 	docker-compose down --remove-orphans

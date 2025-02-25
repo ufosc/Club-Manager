@@ -25,6 +25,18 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from analytics.views import redirect_link_view
 from app.settings import DEV
 
+apipatterns = [
+    path("schema/club-manager", SpectacularAPIView.as_view(), name="api-schema"),
+    path(
+        "docs/",
+        SpectacularSwaggerView.as_view(url_name="api-schema"),
+        name="api-docs",
+    ),
+    path("user/", include("users.apis")),
+    path("club/", include("clubs.apis")),
+    path("club/poll/", include("clubs.polls.apis")),
+]
+
 urlpatterns = [
     path("", include("core.urls")),
     path("r/<int:link_id>/", redirect_link_view, name="redirect-link"),
@@ -32,16 +44,10 @@ urlpatterns = [
     path("auth/", include("users.authentication.urls")),
     path("auth/", include("django.contrib.auth.urls")),
     path("api/docs/", RedirectView.as_view(url="/api/v1/docs/"), name="api-docs-base"),
-    path("api/v1/schema/club-manager", SpectacularAPIView.as_view(), name="api-schema"),
-    path(
-        "api/v1/docs/",
-        SpectacularSwaggerView.as_view(url_name="api-schema"),
-        name="api-docs",
-    ),
+    path("api/v1/", include(apipatterns)),
     path("users/", include("users.urls")),
     path("clubs/", include("clubs.urls")),
-    path("api/v1/user/", include("users.apis")),
-    path("api/v1/club/", include("clubs.apis")),
+    path("dashboard/", include("dashboard.urls")),
 ]
 
 if DEV:

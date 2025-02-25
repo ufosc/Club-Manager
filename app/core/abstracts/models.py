@@ -3,8 +3,10 @@ Abstract models for common fields.
 """
 
 import uuid
+from enum import Enum
 from typing import Any, ClassVar, Generic, MutableMapping, Optional, Self
 
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from utils.types import T
@@ -108,6 +110,13 @@ class ManagerBase(models.Manager, Generic[T]):
         return super().all()
 
 
+class Scope(Enum):
+    """Permission levels."""
+
+    GLOBAL = "global"
+    CLUB = "club"
+
+
 class ModelBase(models.Model):
     """
     Default fields for all models.
@@ -116,6 +125,9 @@ class ModelBase(models.Model):
     default __str__ method that returns name or display_name
     if the field exists on the model.
     """
+
+    scope = Scope.GLOBAL
+    """Defines permissions level applied to model."""
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
@@ -129,6 +141,19 @@ class ModelBase(models.Model):
             return self.display_name
 
         return super().__str__()
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    @classmethod
+    def get_content_type(cls):
+        """
+        Get ContentType object representing the model.
+
+        This is a shorthand for: ``ContentType.objects.get_for_model(model)``
+        """
+        return ContentType.objects.get_for_model(cls)
 
     class Meta:
         abstract = True

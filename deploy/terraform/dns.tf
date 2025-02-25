@@ -1,3 +1,7 @@
+locals {
+  base_url = "https://${var.domain_name}"
+}
+
 # Creates certificate for domain name and each sub domain
 module "dns_certificates" {
   source      = "./modules/acm-certificates"

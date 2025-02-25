@@ -87,9 +87,10 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
 
     objects: ClassVar[UserManager] = UserManager()
 
-    # Relationships
+    # Foreign Relationships
     profile: Optional["Profile"]
     club_memberships: models.QuerySet
+    team_memberships: models.QuerySet
 
     # Dynamic Properties
     @property
@@ -106,6 +107,7 @@ class User(AbstractBaseUser, PermissionsMixin, UniqueModel):
 
         return self.profile.last_name
 
+    # Overrides
     def __str__(self):
         return self.username
 

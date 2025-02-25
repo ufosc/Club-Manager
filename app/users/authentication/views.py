@@ -37,8 +37,13 @@ class AuthLoginView(LoginView):
         form.fields['password'].widget.attrs.update({'placeholder': 'Password'})
         return form
 
-    redirect_authenticated_user = False
-    template_name = "users/authentication/login.html"
+    redirect_authenticated_user = True
+    # template_name = "users/authentication/login.html"
+    template_name = "users/login-user.html"
+
+    def get_context_data(self, **kwargs):
+        kwargs["next"] = self.request.GET.get("next", None)
+        return super().get_context_data(**kwargs)
 
 
 class AuthLogoutView(LogoutView):

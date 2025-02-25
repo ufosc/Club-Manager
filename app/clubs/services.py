@@ -8,6 +8,7 @@ from django.urls import reverse
 from clubs.models import (
     Club,
     ClubMembership,
+    ClubRole,
     DayChoice,
     Event,
     EventAttendance,
@@ -34,10 +35,29 @@ class ClubService(ServiceBase[Club]):
 
         return reverse("clubs:join", kwargs={"club_id": self.obj.id})
 
-    def add_member(self, user: User):
+    def add_member(self, user: User, roles: Optional[list[ClubRole]] = None):
         """Create membership for pre-existing user."""
 
-        return ClubMembership.objects.create(club=self.obj, user=user)
+        return ClubMembership.objects.create(club=self.obj, user=user, roles=roles)
+
+    def set_member_role(self, user: User, role: ClubRole | str):
+        """Replace a member's roles with given role."""
+
+        if isinstance(role, str):
+            role = self.obj.roles.get(name=role)
+
+        member = self._get_user_membership(user)
+        member.roles.clear()
+        member.roles.add(role)
+
+    def add_member_role(self, user: User, role: ClubRole | str):
+        """Add role to member's roles."""
+
+        if isinstance(role, str):
+            role = self.obj.roles.get(name=role)
+
+        member = self._get_user_membership(user)
+        member.roles.add(role)
 
     def increase_member_points(self, user: User, amount: int = 1):
         """Give the user more coins."""
@@ -58,7 +78,8 @@ class ClubService(ServiceBase[Club]):
     def record_event_attendance(self, user: User, event: Event):
         """Record user's attendance for event."""
 
-        member = self._get_user_membership(user)
+        # member = self._get_user_membership(user)
+        member, _ = ClubMembership.objects.get_or_create(user=user, club=event.club)
 
         if event.club.id != self.obj.id:
             raise exceptions.BadRequest(

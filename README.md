@@ -1,4 +1,6 @@
 # OSC Member Manager
+[![Django Tests](https://github.com/ufosc/Club-Manager/actions/workflows/django-test.yml/badge.svg)](https://github.com/ufosc/Club-Manager/actions/workflows/django-test.yml) 
+[![Push Docker Images](https://github.com/ufosc/Club-Manager/actions/workflows/push-docker.yml/badge.svg)](https://github.com/ufosc/Club-Manager/actions/workflows/push-docker.yml)
 
 ## Getting Started
 

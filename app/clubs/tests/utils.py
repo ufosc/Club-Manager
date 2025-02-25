@@ -1,10 +1,10 @@
+import uuid
 from datetime import datetime, timedelta
-from random import randint
 
 from django.urls import reverse
 from django.utils import timezone
 
-from clubs.models import Club, Event
+from clubs.models import Club, Event, Team
 
 CLUB_CREATE_PARAMS = {
     "name": "Test Club",
@@ -15,7 +15,7 @@ CLUB_UPDATE_PARAMS = {"name": "Updated Club"}
 def create_test_club(name=None, **kwargs):
     """Create unique club for unit tests."""
     if name is None:
-        name = f"Test Club {randint(0, 100)}"
+        name = f"Test Club {uuid.uuid4()}"
 
     return Club.objects.create(name=name, **kwargs)
 
@@ -44,6 +44,14 @@ def create_test_event(
         description=description,
         **kwargs,
     )
+
+
+def create_test_team(club: Club, **kwargs):
+    """Create valid team for unit tests."""
+
+    payload = {"name": kwargs.pop("name", f"Team {uuid.uuid4()}"), **kwargs}
+
+    return Team.objects.create(club=club, **payload)
 
 
 def join_club_url(club_id: int):

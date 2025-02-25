@@ -5,6 +5,8 @@ Club models.
 # from datetime import datetime, timedelta
 from typing import ClassVar, Optional
 
+from django.contrib.auth.models import Permission
+from django.core import exceptions
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -12,19 +14,12 @@ from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
 
 from analytics.models import Link
-from core.abstracts.models import ManagerBase, ModelBase, UniqueModel
+from core.abstracts.models import ManagerBase, ModelBase, Scope, UniqueModel
 from users.models import User
 from utils.dates import get_day_count
 from utils.helpers import get_full_url
 from utils.models import UploadFilepathFactory
-
-
-# TODO: Implement RBAC, custom roles
-# Ref: https://medium.com/@subhamx/role-based-access-control-in-django-the-right-features-to-the-right-users-9e93feb8a3b1 # noqa: E501
-class ClubRoles(models.TextChoices):
-    PRESIDENT = "president", _("President")
-    OFFICER = "officer", _("Officer")
-    MEMBER = "member", _("Member")
+from utils.permissions import get_permission
 
 
 class DayChoice(models.IntegerChoices):
@@ -40,6 +35,8 @@ class DayChoice(models.IntegerChoices):
 class Club(UniqueModel):
     """Group of users."""
 
+    scope = Scope.CLUB
+
     get_logo_filepath = UploadFilepathFactory("clubs/logos/")
 
     name = models.CharField(max_length=64, unique=True)
@@ -47,6 +44,102 @@ class Club(UniqueModel):
 
     # Relationships
     memberships: models.QuerySet["ClubMembership"]
+    teams: models.QuerySet["Team"]
+    roles: models.QuerySet["ClubRole"]
+
+    # Overrides
+    @property
+    def club(self):
+        """Used for permissions checking."""
+        return self
+
+    class Meta:
+        permissions = [("preview_club", "Can view a set of limited fields for a club.")]
+
+
+class ClubRoleManager(ManagerBase["ClubRole"]):
+    """Manage club role queries."""
+
+    def create(self, club: Club, name: str, default=False, perm_labels=None, **kwargs):
+        """
+        Create new club role.
+
+        Can either assign initial permissions by perm_labels as ``list[str]``, or
+        by permissions as ``list[Permission]``.
+        """
+        perm_labels = perm_labels if perm_labels is not None else []
+        permissions = kwargs.pop("permissions", [])
+
+        role = super().create(club=club, name=name, default=default, **kwargs)
+
+        for perm in perm_labels:
+            perm = get_permission(perm)
+            role.permissions.add(perm)
+
+        for perm in permissions:
+            role.permissions.add(perm)
+
+
+class ClubRole(ModelBase):
+    """Extend permission group to manage club roles."""
+
+    name = models.CharField(max_length=32)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="roles")
+    default = models.BooleanField(
+        default=False,
+        help_text="New members would be automatically assigned this role.",
+    )
+    permissions = models.ManyToManyField(Permission, blank=True)
+
+    # Overrides
+    objects: ClassVar[ClubRoleManager] = ClubRoleManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("default", "club"),
+                condition=models.Q(default=True),
+                name="only_one_default_club_role_per_club",
+            ),
+            models.UniqueConstraint(
+                fields=("name", "club"), name="unique_rolename_per_club"
+            ),
+        ]
+
+    def clean(self):
+        """Validate and sync club roles on save."""
+        if self.default:
+            # Force all other roles to be false
+            self.club.roles.exclude(id=self.id).update(default=False)
+
+        return super().clean()
+
+    def delete(self, *args, **kwargs):
+        """Preconditions for club role deletion."""
+        assert not self.default, "Cannot delete default club role."
+
+        return super().delete(*args, **kwargs)
+
+
+class ClubMembershipManager(ManagerBase["ClubMembership"]):
+    """Manage queries for ClubMemberships."""
+
+    def create(
+        self, club: Club, user: User, roles: Optional[list[ClubRole]] = None, **kwargs
+    ):
+        """Create new club membership."""
+        roles = roles if roles is not None else []
+
+        membership = super().create(club=club, user=user, **kwargs)
+
+        if len(roles) < 1:
+            default_role = club.roles.get(default=True)
+            roles.append(default_role)
+
+        for role in roles:
+            membership.roles.add(role)
+
+        return membership
 
 
 class ClubMembership(ModelBase):
@@ -57,19 +150,20 @@ class ClubMembership(ModelBase):
         User, related_name="club_memberships", on_delete=models.CASCADE
     )
 
-    role = models.CharField(
-        choices=ClubRoles.choices, default=ClubRoles.MEMBER, blank=True
-    )
     owner = models.BooleanField(default=False, blank=True)
-
-    # TODO: Should this be split to own model? Keep history of point changes?
     points = models.IntegerField(default=0, blank=True)
+    roles = models.ManyToManyField(ClubRole)
+
+    # Foreign Relationships
+    teams: models.QuerySet["Team"]
+
+    # Overrides
+    objects: ClassVar[ClubMembershipManager] = ClubMembershipManager()
 
     def __str__(self):
         return self.user.__str__()
 
     class Meta:
-        # TODO: Edgecase - owner's user is deleted, deleting membership
         constraints = [
             models.UniqueConstraint(
                 fields=(
@@ -80,6 +174,92 @@ class ClubMembership(ModelBase):
                 name="only_one_owner_per_club",
             )
         ]
+
+    def delete(self, *args, **kwargs):
+        assert self.owner is False, "Cannot delete owner of club."
+
+        return super().delete(*args, **kwargs)
+
+    def clean(self):
+        """Validate membership model."""
+        if not self.pk:
+            return super().clean()
+
+        for role in self.roles.all():
+            if not role.club.id == self.club.id:
+                raise exceptions.ValidationError(
+                    f"Club role {role} is not a part of club {self.club}."
+                )
+
+        return super().clean()
+
+
+class TeamAccessType(models.TextChoices):
+    """Define team access."""
+
+    OPEN = "open"
+    """Any one can join."""
+
+    TEAM = "team"
+    """Org and team admins can assign."""
+
+    ORG = "org"
+    """Only org admins can assign."""
+
+    CLOSED = "closed"
+    """No one can join."""
+
+
+class Team(ModelBase):
+    """Smaller groups within clubs."""
+
+    scope = Scope.CLUB
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="teams")
+
+    name = models.CharField(max_length=64)
+    points = models.IntegerField(default=0, blank=True)
+
+    access = models.CharField(
+        choices=TeamAccessType.choices, default=TeamAccessType.OPEN
+    )
+
+    # Foreign Relationships
+    memberships: models.QuerySet["TeamMembership"]
+
+    # Overrides
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="unique_team_per_club", fields=("club", "name")
+            )
+        ]
+
+
+class TeamMembership(ModelBase):
+    """Manage club member's assignment to a team."""
+
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="memberships")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="team_memberships"
+    )
+
+    # Overrides
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="user_single_team_membership", fields=("user", "team")
+            )
+        ]
+
+    def clean(self):
+        """Run model validation."""
+
+        if not self.user.club_memberships.filter(club__id=self.team.club.id).exists():
+            raise exceptions.ValidationError(
+                f"User must be a member of club {self.team.club} to join team {self.team}."
+            )
+
+        return super().clean()
 
 
 class EventFields(ModelBase):
@@ -161,6 +341,7 @@ class Event(EventFields):
     https://docs.djangoproject.com/en/5.1/ref/contrib/postgres/fields/#datetimerangefield
     """
 
+    scope = Scope.CLUB
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="events")
 
     start_at = models.DateTimeField(null=True, blank=True)

@@ -14,5 +14,3 @@ class ViewSetBase(GenericViewSet):
 
 class ModelViewSetBase(ModelViewSet, ViewSetBase):
     """Base viewset for model CRUD operations."""
-
-    pass
