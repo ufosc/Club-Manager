@@ -16,6 +16,11 @@ from users.services import UserService
 
 def register_user_view(request: HttpRequest):
     """Add new user to the system."""
+
+    if request.user.is_authenticated:
+        print("User logged in!")
+        return redirect("/")
+
     context = {}
     initial_data = {}
 
