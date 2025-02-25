@@ -69,6 +69,33 @@ If you want to create a new admin without removing the old database, run this co
 ```sh
 docker-compose run --rm app sh -c "python manage.py createsuperuser --no-input"
 ```
+## Django Install
+
+### Prerequisites
+Make sure you have Python installed on your system. Run the following command in your cmd to make sure:
+```sh
+python --version
+```
+If Python is not installed, install it at the following link: https://www.python.org/downloads/
+
+Django should already be included. For full functionality, first open a venv in your terminal.
+
+(If you don't have a venv installed, install one such as Conda: https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html)
+
+Or, run in your IDE terminal:
+```sh
+python -m venv /py
+```
+```sh
+.\.venv\Scripts\activate
+```
+Run in terminal:
+```sh
+pip install -r requirements.txt
+```
+```sh
+pip install -r requirements.dev.txt
+```
 
 ## Discussion
 
