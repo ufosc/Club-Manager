@@ -1,10 +1,11 @@
+import os
 from typing import Optional, Type
 
 from django import forms
 from django.http import HttpResponse
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.status import HTTP_200_OK
 from rest_framework.test import APIClient
 
@@ -30,6 +31,34 @@ class TestsBase(TestCase):
             msg = f"Invalid length of {len(target)}, expected {length}."
 
         self.assertEqual(len(target), length, msg)
+
+    def assertStartsWith(self, string: str, substring: str):
+        """Target string should start with substring."""
+
+        self.assertIsInstance(string, str)
+        self.assertTrue(
+            string.startswith(substring),
+            f"String {string or 'EMPTY'} does not start with {substring}.",
+        )
+
+    def assertEndsWith(self, string: str, substring: str):
+        """Target string should end with substring."""
+
+        self.assertIsInstance(string, str)
+        self.assertTrue(
+            string.endswith(substring),
+            f"String {string} does not end with {substring}.",
+        )
+
+    def assertFileExists(self, path):
+        """File with path should exist."""
+
+        self.assertTrue(os.path.exists(path), f"File does not exist at {path}.")
+
+    def assertValidSerializer(self, serializer: serializers.Serializer):
+        """Check `.is_valid()` function on serializer, prints errors if invalid."""
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)
 
 
 class ApiTestsBase(TestsBase):

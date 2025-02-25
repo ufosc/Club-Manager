@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from clubs.models import Club, ClubMembership
 from core.abstracts.serializers import ModelSerializerBase
+from querycsv.serializers import CsvModelSerializer
 from users.models import User
 
 
@@ -39,6 +40,14 @@ class ClubSerializer(ModelSerializerBase):
         ]
 
 
+class ClubCsvSerializer(CsvModelSerializer):
+    """Represents clubs in csvs."""
+
+    class Meta:
+        model = Club
+        fields = "__all__"
+
+
 class ClubMembershipSerializer(ModelSerializerBase):
     """Represents a club membership to use for CRUD operations."""
 
@@ -56,6 +65,20 @@ class ClubMembershipSerializer(ModelSerializerBase):
             "user_id",
             "club_id",
             # "role",
+            "owner",
+            "points",
+        ]
+
+
+class ClubMembershipCsvSerializer(CsvModelSerializer, ClubMembershipSerializer):
+    """Serialize club memberships for a csv."""
+
+    class Meta:
+        model = ClubMembership
+        fields = [
+            *ModelSerializerBase.default_fields,
+            "user_id",
+            "club_id",
             "owner",
             "points",
         ]

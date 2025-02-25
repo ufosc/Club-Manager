@@ -155,6 +155,20 @@ class ModelBase(models.Model):
         """
         return ContentType.objects.get_for_model(cls)
 
+    @classmethod
+    def get_fields_list(
+        cls, include_parents=True, exclude_read_only=False
+    ) -> list[str]:
+        """Return a list of editable fields."""
+
+        fields = [
+            str(field.name)
+            for field in cls._meta.get_fields(include_parents=include_parents)
+            if (not exclude_read_only or (exclude_read_only and field.editable is True))
+        ]
+
+        return fields
+
     class Meta:
         abstract = True
 

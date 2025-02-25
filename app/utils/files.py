@@ -2,7 +2,9 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from app.settings import MEDIA_ROOT
+from django.db import models
+
+from app.settings import MEDIA_ROOT, S3_STORAGE_BACKEND
 
 # def get_media_dir(nested_path=""):
 #     return Path(MEDIA_ROOT, nested_path)
@@ -54,3 +56,18 @@ def get_media_path(
         path = Path(path, filename)
 
     return str(path)
+
+
+def get_file_path(file: models.FileField):
+    """
+    Returns the appropriate path for a file.
+
+    In production, this returns file.url, and in development
+    mode it returns file.path. This is because boto3 will
+    raise an error if file.path is called in production.
+    """
+
+    if S3_STORAGE_BACKEND is True:
+        return file.url
+    else:
+        return file.path

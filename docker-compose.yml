@@ -9,6 +9,7 @@ services:
       - '8000:8000'
     volumes:
       - ./app:/app
+      - static-clubs-dev:/vol/static
     command: >
       sh -c "python manage.py wait_for_db &&
              python manage.py migrate &&
@@ -25,7 +26,6 @@ services:
       - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
       - DJANGO_SUPERUSER_PASS=${DJANGO_SUPERUSER_PASS:-changeme}
       - DJANGO_BASE_URL=${DJANGO_BASE_URL:-http://localhost:8000}
-      - S3_STORAGE_BACKEND=0
       - CREATE_SUPERUSER=1
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-""}
       - EMAIL_HOST_PASS=${EMAIL_HOST_PASS:-""}
@@ -42,8 +42,12 @@ services:
       - CELERY_ACKS_LATE=True
       - DJANGO_DB=postgresql
       - DJANGO_REDIS_URL=redis://clubs-dev-redis:6379/1
+
+      - AWS_EXECUTION_ENV=0
+      - S3_STORAGE_BACKEND=0
     depends_on:
       - postgres
+      - redis
 
   postgres:
     image: postgres:13-alpine
@@ -71,7 +75,7 @@ services:
     command: ['celery', '-A', 'app', 'worker', '--loglevel=info']
     volumes:
       - ./app:/app
-      - static-clubs-dev:/vol/web
+      - static-clubs-dev:/vol/static
     depends_on:
       - redis
       - postgres
@@ -80,14 +84,30 @@ services:
       - DEBUG=1
       - CELERY_BROKER_URL=redis://clubs-dev-redis:6379/0
       - CELERY_RESULT_BACKEND=redis://clubs-dev-redis:6379/0
-      - DJANGO_DB=postgresql
+      - CELERY_ACKS_LATE=True
 
       - POSTGRES_HOST=clubs-dev-db
       - POSTGRES_PORT=5432
-      - POSTGRES_NAME=devdatabase
       - POSTGRES_DB=devdatabase
+      - POSTGRES_NAME=devdatabase
       - POSTGRES_USER=devuser
       - POSTGRES_PASSWORD=devpass
+
+      - DJANGO_DB=postgresql
+      - DJANGO_REDIS_URL=redis://clubs-dev-redis:6379/1
+      - DB_HOST=clubs-dev-db
+      - DB_NAME=devdatabase
+      - DB_USER=devuser
+      - DB_PASS=devpass
+
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-""}
+      - EMAIL_HOST_PASS=${EMAIL_HOST_PASS:-""}
+      - CONSOLE_EMAIL_BACKEND=${CONSOLE_EMAIL_BACKEND:-1}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY:-""}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-""}
+
+      - AWS_EXECUTION_ENV=0
+      - S3_STORAGE_BACKEND=0
 
   celerybeat:
     build:
@@ -108,7 +128,7 @@ services:
       ]
     volumes:
       - ./app:/app
-      - static-clubs-dev:/vol/web
+      - static-clubs-dev:/vol/static
     depends_on:
       - redis
       - postgres
@@ -122,6 +142,7 @@ services:
 
       - POSTGRES_HOST=clubs-dev-db
       - POSTGRES_PORT=5432
+      - POSTGRES_DB=devdatabase
       - POSTGRES_NAME=devdatabase
       - POSTGRES_USER=devuser
       - POSTGRES_PASSWORD=devpass
@@ -130,6 +151,15 @@ services:
       - DB_NAME=devdatabase
       - DB_USER=devuser
       - DB_PASS=devpass
+
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-""}
+      - EMAIL_HOST_PASS=${EMAIL_HOST_PASS:-""}
+      - CONSOLE_EMAIL_BACKEND=${CONSOLE_EMAIL_BACKEND:-1}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY:-""}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-""}
+
+      - AWS_EXECUTION_ENV=0
+      - S3_STORAGE_BACKEND=0
 
   coverage:
     image: nginx

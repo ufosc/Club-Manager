@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "core",
     "users",
     "users.authentication",
+    "querycsv",
     "analytics",
     "clubs",
     "clubs.polls",
@@ -228,10 +229,22 @@ LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "/auth/login/"
 AUTHENTICATION_BACKENDS = ["core.backend.CustomBackend"]
 
+
+########################
+# ==  AWS S3 Config == #
+########################
+S3_STORAGE_BACKEND = bool(int(os.environ.get("S3_STORAGE_BACKEND", 1)))
+if S3_STORAGE_BACKEND is True:
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+AWS_DEFAULT_ACL = "public-read"
+AWS_STORAGE_BUCKET_NAME = os.environ.get("S3_STORAGE_BUCKET_NAME", "")
+AWS_S3_REGION_NAME = os.environ.get("S3_STORAGE_BUCKET_REGION", "us-east-1")
+AWS_QUERYSTRING_AUTH = False
+
 ######################
 # == Email Config == #
 ######################
-
 CONSOLE_EMAIL_BACKEND = environ_bool("CONSOLE_EMAIL_BACKEND", 0)
 
 if CONSOLE_EMAIL_BACKEND:
@@ -264,6 +277,14 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 # Custom schedules
 CELERY_BEAT_SCHEDULE = {}
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.environ.get("DJANGO_REDIS_URL"),
+    },
+}
+
+
 ###############################
 # == Environment Overrides == #
 ###############################
@@ -291,7 +312,12 @@ if DEBUG:
 
 
 if TESTING:
-    INSTALLED_APPS.append("core.mock")
+    # Ensure tasks execute immediately
+    CELERY_TASK_ALWAYS_EAGER = True
 
     # Force disable notifications
     EMAIL_HOST_PASSWORD = None
+
+if DEV or TESTING:
+    # Allow for migrations during dev mode
+    INSTALLED_APPS.append("core.mock")
