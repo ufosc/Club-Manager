@@ -1,6 +1,6 @@
 import os
-from pathlib import Path
 import uuid
+from pathlib import Path
 
 from django.core.files import File
 from django.db import models

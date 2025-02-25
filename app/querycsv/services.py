@@ -1,13 +1,13 @@
-from enum import Enum
 import re
+from enum import Enum
 from typing import Literal, Optional, OrderedDict, Type, TypedDict
 
 import pandas as pd
 from django.db import models
 
 from core.abstracts.serializers import ModelSerializerBase
-from querycsv.consts import QUERYCSV_MEDIA_SUBDIR
 from lib.spreadsheets import read_spreadsheet
+from querycsv.consts import QUERYCSV_MEDIA_SUBDIR
 from querycsv.models import QueryCsvUploadJob
 from querycsv.serializers import CsvModelSerializer
 from utils.files import get_media_path
@@ -62,8 +62,10 @@ class QueryCsvService:
     def download_csv(self, queryset: models.QuerySet) -> str:
         """Download: Convert queryset to csv, return path to csv."""
 
-        data = self.serializer_class(queryset, many=True).flat_data
-        df = pd.json_normalize(data)
+        data = self.serializer_class(queryset, many=True).data
+        flattened = [self.serializer_class.json_to_flat(obj) for obj in data]
+
+        df = pd.json_normalize(flattened)
         filepath = get_media_path(
             QUERYCSV_MEDIA_SUBDIR + "downloads/",
             fileprefix=f"{self.model_name}",

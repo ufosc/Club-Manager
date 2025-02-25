@@ -1,15 +1,15 @@
-from django.core.mail import EmailMessage
-from django.utils.safestring import mark_safe
 import pandas as pd
 from celery import shared_task
+from django.core.mail import EmailMessage
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 
 from querycsv.consts import QUERYCSV_MEDIA_SUBDIR
 from querycsv.models import CsvUploadStatus, QueryCsvUploadJob
 from querycsv.services import QueryCsvService
 from utils.files import get_media_path
-from utils.models import save_file_to_model
 from utils.helpers import import_from_path
+from utils.models import save_file_to_model
 
 
 @shared_task

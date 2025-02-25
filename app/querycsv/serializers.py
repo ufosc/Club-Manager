@@ -1,9 +1,11 @@
 import re
 from typing import Optional
+
 from django.db import models
 from rest_framework import serializers
 from rest_framework.fields import empty
 from rest_framework.relations import SlugRelatedField
+
 from core.abstracts.serializers import FieldType, ModelSerializerBase, SerializerBase
 from utils.helpers import str_to_list
 
@@ -86,14 +88,6 @@ class FlatListField(FlatField):
             self.key += f".{self.sub_key}"
 
 
-class FlatListSerializer(serializers.ListSerializer):
-    """Extend default list serializer."""
-
-    @property
-    def flat_data(self):
-        return [FlatSerializer.json_to_flat(data) for data in self.data]
-
-
 class FlatSerializer(SerializerBase):
     """Convert between json data and flattened data."""
 
@@ -104,9 +98,6 @@ class FlatSerializer(SerializerBase):
         nested_data = self.flat_to_json(data)
 
         super().__init__(instance, data=nested_data, **kwargs)
-
-    class Meta:
-        list_serializer_class = FlatListSerializer
 
     ##############################
     # == Serializer Functions == #

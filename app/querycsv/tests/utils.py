@@ -14,8 +14,8 @@ from app.settings import MEDIA_ROOT
 from core.abstracts.tests import TestsBase
 from core.mock.models import Buster, BusterTag
 from core.mock.serializers import BusterCsvSerializer
-from querycsv.services import QueryCsvService
 from lib.faker import fake
+from querycsv.services import QueryCsvService
 from utils.files import get_media_path
 from utils.helpers import clean_list
 

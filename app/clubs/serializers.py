@@ -68,3 +68,17 @@ class ClubMembershipSerializer(ModelSerializerBase):
             "owner",
             "points",
         ]
+
+
+class ClubMembershipCsvSerializer(CsvModelSerializer, ClubMembershipSerializer):
+    """Serialize club memberships for a csv."""
+
+    class Meta:
+        model = ClubMembership
+        fields = [
+            *ModelSerializerBase.default_fields,
+            "user_id",
+            "club_id",
+            "owner",
+            "points",
+        ]

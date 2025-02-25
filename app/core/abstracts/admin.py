@@ -65,7 +65,7 @@ class ModelAdminBase(AdminBase, admin.ModelAdmin):
     object_tools = ()
 
     formfield_overrides = {}
-    
+
     change_list_template = "admin/core/change_list.html"
     csv_serializer_class: Optional[CsvModelSerializer] = None
     """Serializer to use for csv uploads"""
